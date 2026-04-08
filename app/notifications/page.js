@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
 export default function NotificationsPage() {
-  const { authFetch } = useAuth();
+  const { authFetch, user } = useAuth(); // ← pull `user` so we have the current user's ID
   const [notifications, setNotifications] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,8 @@ export default function NotificationsPage() {
                         <p style={explanationStyle}>💡 {match.explanation}</p>
                       )}
 
-                      {match.status === 'pending' && (
+                      {/* ✅ FIX: Only show "Claim This Item" to the owner of the LOST item */}
+                      {match.status === 'pending' && match.lost_user_id === user?.id && (
                         <Link
                           href={`/claims/new?match_id=${match.id}`}
                           style={claimBtnStyle}

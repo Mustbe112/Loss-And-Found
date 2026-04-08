@@ -26,7 +26,11 @@ export function AuthProvider({ children }) {
     localStorage.setItem('user', JSON.stringify(user));
     setToken(token);
     setUser(user);
-    router.push('/dashboard');
+    if (user.role === 'admin') {
+      router.push('/admin');
+    } else if(user.role == 'user'){
+      router.push('/dashboard');
+    }
   };
 
   const logout = () => {

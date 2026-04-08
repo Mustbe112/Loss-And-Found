@@ -62,10 +62,12 @@ export default function ClaimsPage() {
                 </div>
 
                 <div style={actionsStyle}>
-                  {/* Open chat */}
-                  <Link href={`/chat/${claim.chat_id}`} style={btnChat}>
-                    💬 Open Chat
-                  </Link>
+                  {/* Open chat — hidden when confirmed or rejected */}
+                  {claim.status !== 'confirmed' && claim.status !== 'rejected' && (
+                    <Link href={`/chat/${claim.chat_id}`} style={btnChat}>
+                      💬 Open Chat
+                    </Link>
+                  )}
 
                   {/* Claimant: confirm got item back */}
                   {user?.id === claim.claimant_id && claim.status === 'verifying' && (
@@ -81,10 +83,22 @@ export default function ClaimsPage() {
                     </button>
                   )}
 
-                  {/* Report to admin */}
-                  <Link href={`/admin/report?claim_id=${claim.id}`} style={btnReport}>
-                    🚩 Report Issue
-                  </Link>
+                  {/* Report to admin — hidden when confirmed or rejected */}
+                  {claim.status !== 'confirmed' && claim.status !== 'rejected' && (
+                    <Link href={`/admin/report?claim_id=${claim.id}`} style={btnReport}>
+                      🚩 Report Issue
+                    </Link>
+                  )}
+
+                  {/* Confirmed message */}
+                  {claim.status === 'confirmed' && (
+                    <span style={confirmedMsgStyle}>✅ Item successfully returned</span>
+                  )}
+
+                  {/* Rejected message */}
+                  {claim.status === 'rejected' && (
+                    <span style={rejectedMsgStyle}>❌ Claim rejected</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -132,3 +146,5 @@ const btnReject = { background: '#e9456020', color: '#e94560', border: '1px soli
 const btnReport = { background: '#ff980020', color: '#ff9800', border: '1px solid #ff9800', padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.85rem', textDecoration: 'none' };
 const btnPrimary = { background: '#e94560', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' };
 const emptyStyle = { textAlign: 'center', padding: '4rem 2rem', background: '#1a1a2e', borderRadius: '12px', border: '1px solid #333' };
+const confirmedMsgStyle = { color: '#4caf50', fontSize: '0.85rem', fontWeight: '500' };
+const rejectedMsgStyle = { color: '#e94560', fontSize: '0.85rem', fontWeight: '500' };
