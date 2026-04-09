@@ -46,8 +46,8 @@ export async function POST(req) {
 
     const id = uuid();
     await query(
-      `INSERT INTO items (id, user_id, type, name, description, category, location, date_occurred, image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO items (id, user_id, type, name, description, category, location, date_occurred, image_url, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
       [id, decoded.id, type, name, description, category, location, date_occurred, image_url]
     );
 

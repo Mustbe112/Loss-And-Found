@@ -39,10 +39,17 @@ export async function POST(req) {
       );
       if (existing.length > 0) continue;
 
-      const aiResult = await matchItems(lostItem, foundItem);
+      let aiResult;
+      try {
+        aiResult = await matchItems(lostItem, foundItem);
+        console.log(`[match] ${lostItem.name} ↔ ${foundItem.name}: score=${aiResult.score}`);
+      } catch (err) {
+        console.error('[match] matchItems failed:', err.message);
+        continue;
+      }
 
       // Only save Medium or High confidence matches (score >= 50)
-      if (aiResult.score >= 50) {
+      if (aiResult?.score >= 50) {
         const matchId = uuid();
         await query(
           `INSERT INTO matches (id, lost_item_id, found_item_id, score, confidence, explanation)

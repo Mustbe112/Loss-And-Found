@@ -4,35 +4,97 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 export default function Navbar() {
+
   const { user, logout } = useAuth();
 
+  const initials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
+    : 'ME';
+
   return (
+
     <nav style={{
-      background: '#1a1a2e',
-      padding: '0 2rem',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      background: '#fff',
+      borderBottom: '0.5px solid rgba(0,0,0,0.1)',
       height: '60px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
+      padding: '0 2rem',
+      fontFamily: "'DM Sans', -apple-system, sans-serif"
     }}>
-      <Link href="/" style={{ color: '#e94560', fontWeight: 'bold', fontSize: '1.2rem', textDecoration: 'none' }}>
-        🔍 Lost & Found
+
+      {/* Logo */}
+      <Link
+        href="/dashboard"
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color: '#0d0d0d',
+          textDecoration: 'none',
+          letterSpacing: '-0.3px'
+        }}
+      >
+        FIND<span style={{ fontWeight:300 }}>BASE</span>
       </Link>
 
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+
+      {/* Menu */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1.6rem'
+      }}>
+
         {user ? (
           <>
+
             <Link href="/dashboard" style={linkStyle}>Dashboard</Link>
-            <Link href="/items/lost/new" style={linkStyle}>Report Lost</Link>
-            <Link href="/items/found/new" style={linkStyle}>Report Found</Link>
+
+            <Link href="/items/lost" style={linkStyle}>Lost Items</Link>
+
+            <Link href="/items/found" style={linkStyle}>Found Items</Link>
+
+            <Link href="/claims" style={linkStyle}>Claims</Link>
+
             {user.role === 'admin' && (
               <Link href="/admin" style={linkStyle}>Admin</Link>
             )}
-            <span style={{ color: '#aaa', fontSize: '0.9rem' }}>Hi, {user.name}</span>
-            <button onClick={logout} style={btnStyle}>Logout</button>
+
+            {/* Avatar */}
+            <div style={{
+              width:34,
+              height:34,
+              borderRadius:'50%',
+              background:'#0d0d0d',
+              color:'#fff',
+              display:'flex',
+              alignItems:'center',
+              justifyContent:'center',
+              fontSize:12,
+              fontWeight:600,
+              letterSpacing:'0.05em'
+            }}>
+              {initials}
+            </div>
+
+            <button
+              onClick={logout}
+              style={{
+                border:'0.5px solid rgba(0,0,0,0.2)',
+                padding:'6px 12px',
+                borderRadius:8,
+                background:'transparent',
+                cursor:'pointer',
+                fontSize:13
+              }}
+            >
+              Logout
+            </button>
+
           </>
         ) : (
           <>
@@ -40,22 +102,17 @@ export default function Navbar() {
             <Link href="/register" style={linkStyle}>Register</Link>
           </>
         )}
+
       </div>
+
     </nav>
+
   );
 }
 
 const linkStyle = {
-  color: '#fff',
+  fontSize: 13,
+  color: '#888',
   textDecoration: 'none',
-  fontSize: '0.95rem',
-};
-
-const btnStyle = {
-  background: '#e94560',
-  color: '#fff',
-  border: 'none',
-  padding: '0.4rem 1rem',
-  borderRadius: '4px',
-  cursor: 'pointer',
+  fontWeight: 400
 };

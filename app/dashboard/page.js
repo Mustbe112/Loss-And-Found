@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
 /* ─────────────── GLOBAL STYLES ─────────────── */
@@ -23,70 +24,6 @@ const GlobalStyles = () => (
       max-width: 1160px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
-    }
-
-    /* NAV */
-    .nav-root {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: #fff;
-      border-bottom: 0.5px solid rgba(0,0,0,0.1);
-      height: 60px;
-      display: flex;
-      align-items: center;
-      padding: 0 2rem;
-      justify-content: space-between;
-    }
-    .nav-desktop-links {
-      display: flex;
-      gap: 2rem;
-    }
-    .nav-desktop-links a {
-      font-size: 13px;
-      color: #888;
-      text-decoration: none;
-      font-weight: 400;
-    }
-    .nav-desktop-links a.active {
-      color: #0d0d0d;
-      font-weight: 600;
-    }
-    .hamburger-btn {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #0d0d0d;
-      padding: 4px;
-      align-items: center;
-      justify-content: center;
-    }
-    .mobile-drawer {
-      display: none;
-      position: fixed;
-      top: 60px;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-bottom: 0.5px solid rgba(0,0,0,0.1);
-      z-index: 99;
-      padding: 1rem 2rem 1.5rem;
-      flex-direction: column;
-    }
-    .mobile-drawer.open {
-      display: flex;
-    }
-    .mobile-drawer a {
-      font-size: 15px;
-      color: #0d0d0d;
-      text-decoration: none;
-      padding: 0.85rem 0;
-      border-bottom: 0.5px solid rgba(0,0,0,0.07);
-      font-weight: 400;
-    }
-    .mobile-drawer a:last-child {
-      border-bottom: none;
     }
 
     /* PAGE HEADER */
@@ -125,12 +62,6 @@ const GlobalStyles = () => (
       }
     }
     @media (max-width: 640px) {
-      .nav-desktop-links {
-        display: none;
-      }
-      .hamburger-btn {
-        display: flex;
-      }
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
@@ -153,16 +84,6 @@ const GlobalStyles = () => (
 );
 
 /* ─────────────── SVG ICONS ─────────────── */
-function StarLogo({ style }) {
-  return (
-    <svg style={style} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 function IconBox({ size = 16 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -205,20 +126,6 @@ function IconPlus({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <path d="M7 2v10M2 7h10" />
-    </svg>
-  );
-}
-function IconMenu({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <path d="M3 5h14M3 10h14M3 15h14" />
-    </svg>
-  );
-}
-function IconClose({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <path d="M5 5l10 10M15 5L5 15" />
     </svg>
   );
 }
@@ -433,78 +340,6 @@ function ClaimRow({ claim }) {
   );
 }
 
-/* ─────────────── NAVBAR ─────────────── */
-function Navbar({ user, unreadCount }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const initials = user?.name
-    ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-    : 'ME';
-
-  return (
-    <>
-      <nav className="nav-root">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <StarLogo style={{ width: 20, height: 20, color: '#0d0d0d' }} />
-          <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px', color: '#0d0d0d' }}>
-            FIND<span style={{ fontWeight: 300 }}>BASE</span>
-          </span>
-        </div>
-
-        <div className="nav-desktop-links">
-          <Link href="/dashboard" className="active">Dashboard</Link>
-          <Link href="/items/lost">Lost Items</Link>
-          <Link href="/items/found">Found Items</Link>
-          <Link href="/claims">Claims</Link>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{
-              width: 36, height: 36,
-              border: '0.5px solid rgba(0,0,0,0.12)',
-              borderRadius: 9,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#555',
-            }}>
-              <IconBell size={16} />
-            </div>
-            {unreadCount > 0 && (
-              <span style={{
-                position: 'absolute', top: 6, right: 6,
-                width: 7, height: 7, borderRadius: '50%',
-                background: '#e53e3e', border: '1.5px solid #fff',
-              }} />
-            )}
-          </div>
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: '#0d0d0d', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', cursor: 'pointer',
-          }}>
-            {initials}
-          </div>
-          <button
-            className="hamburger-btn"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <IconClose size={20} /> : <IconMenu size={20} />}
-          </button>
-        </div>
-      </nav>
-
-      <div className={`mobile-drawer${menuOpen ? ' open' : ''}`}>
-        <Link href="/dashboard"      onClick={() => setMenuOpen(false)}>Dashboard</Link>
-        <Link href="/items/lost"     onClick={() => setMenuOpen(false)}>Lost Items</Link>
-        <Link href="/items/found"    onClick={() => setMenuOpen(false)}>Found Items</Link>
-        <Link href="/claims"         onClick={() => setMenuOpen(false)}>Claims</Link>
-        <Link href="/notifications"  onClick={() => setMenuOpen(false)}>Notifications</Link>
-      </div>
-    </>
-  );
-}
-
 /* ─────────────── MAIN PAGE ─────────────── */
 export default function DashboardPage() {
   const { authFetch, user } = useAuth();
@@ -544,7 +379,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <GlobalStyles />
-      <Navbar user={user} unreadCount={unreadCount} />
+      <Navbar />
 
       <div className="db-page">
         <div className="db-inner">
