@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 // Admin office location — shown to found person when chat is permanently closed
@@ -19,6 +19,7 @@ const ADMIN_OFFICE = {
 export default function ChatPage() {
   const { authFetch, user, token } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const chatId = params.id;
 
   const [messages, setMessages] = useState([]);
@@ -40,6 +41,7 @@ export default function ChatPage() {
 
   const [verificationData, setVerificationData] = useState(null);
   const [showVerificationPanel, setShowVerificationPanel] = useState(false);
+  const [claimActionLoading, setClaimActionLoading] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -127,6 +129,28 @@ export default function ChatPage() {
     setNewMsg('');
     setSending(false);
     fetchMessages();
+  };
+
+  const handleClaimConfirm = async () => {
+    if (!claimId) return;
+    if (!confirm('Are you sure you want to confirm that you got your item back?')) return;
+    setClaimActionLoading(true);
+    try {
+      const res = await authFetch(`/api/claims/${claimId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+      if (res.ok) {
+        router.push('/claims');
+      } else {
+        alert('Failed to update claim status. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating claim:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setClaimActionLoading(false);
+    }
   };
 
   // Is chat usable?
@@ -240,6 +264,19 @@ export default function ChatPage() {
                 {sending ? '...' : '➤'}
               </button>
             </form>
+          )}
+
+          {/* Claim Actions — only shown when chat is open and user is the lost person */}
+          {canChat && isLostPerson && (
+            <div style={claimActionsStyle}>
+              <button 
+                onClick={handleClaimConfirm} 
+                style={btnGotItem}
+                disabled={claimActionLoading}
+              >
+                {claimActionLoading ? 'Processing...' : '✅ I Got My Item Back'}
+              </button>
+            </div>
           )}
 
         </div>
@@ -531,3 +568,8 @@ const adminRowStyle = { color: '#ccc', fontSize: '0.88rem', marginBottom: '0.5re
 const mapLinkStyle = { display: 'inline-block', marginTop: '0.75rem', background: '#2196f320', color: '#2196f3', border: '1px solid #2196f360', borderRadius: '6px', padding: '0.5rem 1rem', fontSize: '0.85rem', textDecoration: 'none' };
 const backToClaimsStyle = { display: 'inline-block', marginTop: '0.5rem', color: '#666', fontSize: '0.85rem', textDecoration: 'none' };
 const statusPillStyle = (color) => ({ background: `${color}15`, border: `1px solid ${color}40`, borderRadius: '8px', padding: '0.75rem 1rem', color, fontSize: '0.88rem', textAlign: 'left' });
+
+// Claim actions styles
+const claimActionsStyle = { display: 'flex', gap: '0.75rem', padding: '0.75rem 1.5rem', borderTop: '1px solid #1e1e35', background: '#0f0f1a', flexShrink: 0 };
+const btnGotItem = { flex: 1, background: '#4caf5020', color: '#4caf50', border: '1px solid #4caf50', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem', fontWeight: '600', cursor: 'pointer' };
+const btnNotMyItem = { flex: 1, background: '#e9456020', color: '#e94560', border: '1px solid #e94560', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.88rem', fontWeight: '600', cursor: 'pointer' };
