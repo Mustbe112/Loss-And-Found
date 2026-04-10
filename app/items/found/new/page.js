@@ -53,12 +53,13 @@ export default function ReportFoundPage() {
 
         .rfi-page { min-height: 100vh; background: #f5f4f0; font-family: 'DM Sans', sans-serif; }
 
+        /* NAV */
         .rfi-nav {
           display: flex; align-items: center; justify-content: space-between;
           padding: 0 2.5rem; height: 60px; background: #f5f4f0;
-          border-bottom: 0.5px solid #ddd;
+          border-bottom: 0.5px solid #ddd; position: sticky; top: 0; z-index: 10;
         }
-        .rfi-nav-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .rfi-nav-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; flex-shrink: 0; }
         .rfi-nav-logo svg { width: 18px; height: 18px; stroke: #111; }
         .rfi-nav-brand { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; color: #111; }
         .rfi-nav-brand span { font-weight: 300; }
@@ -67,16 +68,18 @@ export default function ReportFoundPage() {
           font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
           color: #888; cursor: pointer; background: none; border: none;
           font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.15s;
+          white-space: nowrap;
         }
         .rfi-nav-link:hover { color: #111; }
         .rfi-nav-cta {
           font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
           background: #111; color: #fff; border: none; padding: 8px 18px;
           border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif;
-          font-weight: 500; transition: background 0.15s;
+          font-weight: 500; transition: background 0.15s; white-space: nowrap;
         }
         .rfi-nav-cta:hover { background: #333; }
 
+        /* FORM WRAPPER */
         .rfi-wrapper { max-width: 560px; margin: 0 auto; padding: 3rem 2rem 4rem; }
         .rfi-eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #999; margin-bottom: 6px; }
         .rfi-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #111; line-height: 1.15; margin-bottom: 8px; }
@@ -85,6 +88,7 @@ export default function ReportFoundPage() {
 
         .rfi-error { border: 0.5px solid #111; border-left: 2px solid #111; color: #111; padding: 10px 14px; border-radius: 2px; margin-bottom: 1.5rem; font-size: 13px; }
 
+        /* FIELDS */
         .rfi-form { display: flex; flex-direction: column; }
         .rfi-field { padding: 14px 0; border-top: 0.5px solid #ddd; display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; }
         .rfi-field:last-of-type { border-bottom: 0.5px solid #ddd; }
@@ -102,6 +106,7 @@ export default function ReportFoundPage() {
           background-repeat: no-repeat; background-position: right 4px center; padding-right: 18px; cursor: pointer;
         }
 
+        /* FILE UPLOAD */
         .rfi-file-wrap { position: relative; display: inline-flex; }
         .rfi-file-btn {
           display: inline-flex; align-items: center; gap: 6px; background: #fff;
@@ -113,6 +118,7 @@ export default function ReportFoundPage() {
         .rfi-file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
         .rfi-preview { width: 100%; max-height: 160px; object-fit: cover; margin-top: 10px; border: 0.5px solid #ccc; border-radius: 2px; display: block; filter: grayscale(15%); }
 
+        /* BUTTONS */
         .rfi-btn-row { display: flex; gap: 10px; margin-top: 1.75rem; }
         .rfi-btn-cancel {
           flex: 0 0 auto; background: transparent; color: #888; border: 0.5px solid #ccc;
@@ -128,12 +134,45 @@ export default function ReportFoundPage() {
         .rfi-btn-submit:hover:not(:disabled) { background: #333; }
         .rfi-btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
+        /* ── MOBILE ── */
         @media (max-width: 600px) {
+          /* Nav: hide text links, keep only sign out */
           .rfi-nav { padding: 0 1.25rem; }
-          .rfi-nav-links { gap: 1rem; }
-          .rfi-wrapper { padding: 2rem 1.25rem 3rem; }
-          .rfi-field { grid-template-columns: 1fr; gap: 4px; }
+          .rfi-nav-links { gap: 0.75rem; }
+          .rfi-nav-link { display: none; }
+          .rfi-nav-cta { padding: 7px 14px; font-size: 11px; }
+
+          /* Wrapper */
+          .rfi-wrapper { padding: 1.75rem 1.25rem 3rem; }
+
+          /* Title */
+          .rfi-title { font-size: 22px; }
+
+          /* Fields: single column */
+          .rfi-field {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            padding: 12px 0;
+          }
           .rfi-flabel { padding-top: 0; }
+
+          /* Inputs: slightly larger tap targets */
+          .rfi-field input[type="text"],
+          .rfi-field input[type="date"],
+          .rfi-field select,
+          .rfi-field textarea {
+            font-size: 16px; /* prevents iOS zoom */
+            padding: 8px 0;
+          }
+
+          /* File upload: full width */
+          .rfi-file-wrap { width: 100%; }
+          .rfi-file-btn { width: 100%; justify-content: center; padding: 10px 14px; }
+
+          /* Buttons: stack vertically, full width */
+          .rfi-btn-row { flex-direction: column-reverse; gap: 8px; margin-top: 1.5rem; }
+          .rfi-btn-cancel { flex: unset; width: 100%; text-align: center; padding: 11px; }
+          .rfi-btn-submit { padding: 13px; font-size: 13px; }
         }
       `}</style>
 
@@ -143,7 +182,7 @@ export default function ReportFoundPage() {
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
             </svg>
-            <span className="rfi-nav-brand">FIND<span>IT</span></span>
+            <span className="rfi-nav-brand">FIND<span>BASE</span></span>
           </div>
           <div className="rfi-nav-links">
             <button className="rfi-nav-link" onClick={() => router.push('/dashboard')}>Dashboard</button>

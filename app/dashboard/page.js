@@ -39,6 +39,27 @@ const GlobalStyles = () => (
       gap: 0.75rem;
       flex-shrink: 0;
     }
+    .header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .header-btn-outline {
+      background: transparent;
+      color: #0d0d0d;
+      border: 0.5px solid rgba(0,0,0,0.2);
+    }
+    .header-btn-solid {
+      background: #0d0d0d;
+      color: #fff;
+      border: none;
+    }
 
     /* STATS */
     .stats-grid {
@@ -55,29 +76,93 @@ const GlobalStyles = () => (
       gap: 1rem;
     }
 
-    /* RESPONSIVE */
+    /* ── TABLET ── */
     @media (max-width: 900px) {
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
+
+    /* ── MOBILE ── */
     @media (max-width: 640px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
+      .db-inner {
+        padding: 1.25rem 1rem;
       }
-      .sections-grid {
-        grid-template-columns: 1fr;
-      }
+
+      /* Header stacks vertically */
       .page-header {
         flex-direction: column;
         align-items: flex-start;
+        margin-bottom: 1.25rem;
+        gap: 0.85rem;
       }
+
+      /* Greeting text */
+      .page-header h1 {
+        font-size: 1.4rem !important;
+      }
+
+      /* Buttons fill full width, stack if needed */
       .header-actions {
         width: 100%;
+        gap: 0.5rem;
       }
-      .db-inner {
-        padding: 1.5rem 1rem;
+      .header-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 0.6rem 0.75rem;
+        font-size: 12.5px;
+      }
+
+      /* Stats: 2 columns, tighter */
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+        margin-bottom: 0.9rem;
+      }
+
+      /* Sections: single column */
+      .sections-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      /* Stat card compact */
+      .stat-card {
+        padding: 1rem 1.1rem !important;
+        gap: 8px !important;
+      }
+      .stat-card .stat-icon {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 7px !important;
+      }
+      .stat-card .stat-value {
+        font-size: 22px !important;
+      }
+
+      /* Item row tweaks */
+      .item-row {
+        padding: 0.6rem 0.75rem !important;
+      }
+      .item-row .item-name {
+        font-size: 12.5px !important;
+      }
+      .item-row .item-meta {
+        font-size: 10.5px !important;
+      }
+
+      /* Badge smaller on mobile */
+      .badge {
+        font-size: 9.5px !important;
+        padding: 2px 8px !important;
+      }
+    }
+
+    /* ── VERY SMALL PHONES ── */
+    @media (max-width: 360px) {
+      .header-actions {
+        flex-direction: column;
       }
     }
   `}</style>
@@ -163,7 +248,7 @@ const badgeMap = {
 function Badge({ status }) {
   const s = badgeMap[status] || { bg: '#f3f4f6', color: '#6b7280' };
   return (
-    <span style={{
+    <span className="badge" style={{
       background: s.bg,
       color: s.color,
       fontSize: 10,
@@ -192,7 +277,7 @@ function EmptyState({ text }) {
 /* ─────────────── STAT CARD ─────────────── */
 function StatCard({ label, value, iconBg, Icon }) {
   return (
-    <div style={{
+    <div className="stat-card" style={{
       background: '#fff',
       border: '0.5px solid rgba(0,0,0,0.09)',
       borderRadius: 14,
@@ -201,7 +286,7 @@ function StatCard({ label, value, iconBg, Icon }) {
       flexDirection: 'column',
       gap: 12,
     }}>
-      <div style={{
+      <div className="stat-icon" style={{
         width: 36, height: 36,
         borderRadius: 9,
         background: iconBg,
@@ -214,7 +299,7 @@ function StatCard({ label, value, iconBg, Icon }) {
         <Icon size={16} />
       </div>
       <div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: '#0d0d0d', letterSpacing: '-1px', lineHeight: 1 }}>
+        <div className="stat-value" style={{ fontSize: 28, fontWeight: 700, color: '#0d0d0d', letterSpacing: '-1px', lineHeight: 1 }}>
           {value}
         </div>
         <div style={{ fontSize: 12, color: '#999', marginTop: 4, fontWeight: 400 }}>
@@ -263,7 +348,7 @@ function Section({ title, link, Icon, children }) {
 /* ─────────────── ITEM ROW ─────────────── */
 function ItemRow({ item }) {
   return (
-    <div style={{
+    <div className="item-row" style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -273,14 +358,14 @@ function ItemRow({ item }) {
       border: '0.5px solid rgba(0,0,0,0.06)',
       gap: 8,
     }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-        <span style={{
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+        <span className="item-name" style={{
           fontSize: 13, fontWeight: 600, color: '#0d0d0d',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {item.name}
         </span>
-        <span style={{ fontSize: 11, color: '#aaa', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span className="item-meta" style={{ fontSize: 11, color: '#aaa', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <IconPin size={11} />
           {item.location}
           <span style={{ color: '#ddd' }}>·</span>
@@ -310,7 +395,7 @@ function NotifRow({ n }) {
         flexShrink: 0,
         background: n.is_read ? '#ddd' : '#0d0d0d',
       }} />
-      <div>
+      <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 13, color: '#0d0d0d', lineHeight: 1.5 }}>{n.message}</div>
         <div style={{ fontSize: 11, color: '#bbb', marginTop: 2 }}>
           {new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -331,8 +416,10 @@ function ClaimRow({ claim }) {
       borderBottom: '0.5px solid rgba(0,0,0,0.06)',
       gap: 8,
     }}>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#0d0d0d' }}>{claim.lost_item_name}</div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#0d0d0d', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {claim.lost_item_name}
+        </div>
         <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>Found: {claim.found_item_name}</div>
       </div>
       <Badge status={claim.status} />
@@ -343,11 +430,11 @@ function ClaimRow({ claim }) {
 /* ─────────────── MAIN PAGE ─────────────── */
 export default function DashboardPage() {
   const { authFetch, user } = useAuth();
-  const [lostItems, setLostItems]       = useState([]);
-  const [foundItems, setFoundItems]     = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [claims, setClaims]             = useState([]);
-  const [loading, setLoading]           = useState(true);
+  const [lostItems, setLostItems]           = useState([]);
+  const [foundItems, setFoundItems]         = useState([]);
+  const [notifications, setNotifications]   = useState([]);
+  const [claims, setClaims]                 = useState([]);
+  const [loading, setLoading]               = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -404,21 +491,10 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="header-actions">
-              <Link href="/items/found/new" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: 'transparent', color: '#0d0d0d',
-                border: '0.5px solid rgba(0,0,0,0.2)',
-                padding: '0.55rem 1.1rem', borderRadius: 8,
-                fontSize: 13, fontWeight: 500, textDecoration: 'none',
-              }}>
+              <Link href="/items/found/new" className="header-btn header-btn-outline">
                 <IconPlus size={13} /> Report Found
               </Link>
-              <Link href="/items/lost/new" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: '#0d0d0d', color: '#fff', border: 'none',
-                padding: '0.55rem 1.1rem', borderRadius: 8,
-                fontSize: 13, fontWeight: 500, textDecoration: 'none',
-              }}>
+              <Link href="/items/lost/new" className="header-btn header-btn-solid">
                 <IconPlus size={13} /> Report Lost
               </Link>
             </div>

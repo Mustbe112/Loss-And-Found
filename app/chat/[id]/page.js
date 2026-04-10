@@ -56,7 +56,7 @@ const GlobalStyles = () => (
       font-size: 1.5rem; font-weight: 700;
       letter-spacing: -0.4px; color: #0d0d0d; line-height: 1.2;
     }
-    .cp-header-actions { display: flex; gap: 0.6rem; align-items: center; }
+    .cp-header-actions { display: flex; gap: 0.6rem; align-items: center; flex-shrink: 0; }
 
     /* Chat shell */
     .cp-shell {
@@ -86,6 +86,7 @@ const GlobalStyles = () => (
     }
     .cp-bar-dot {
       width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
+      flex-shrink: 0;
     }
     .cp-bar-sub { font-size: 11px; color: #bbb; margin-top: 1px; }
 
@@ -142,6 +143,7 @@ const GlobalStyles = () => (
       font-family: 'DM Sans', sans-serif;
       font-size: 13.5px; color: #0d0d0d;
       outline: none; transition: border-color 0.15s;
+      min-width: 0;
     }
     .cp-input:focus { border-color: rgba(0,0,0,0.3); }
     .cp-input::placeholder { color: #bbb; font-weight: 300; }
@@ -252,7 +254,7 @@ const GlobalStyles = () => (
       padding: 0.45rem 0.9rem; border-radius: 7px;
       font-size: 12px; font-weight: 500; cursor: pointer;
       font-family: 'DM Sans', sans-serif; text-decoration: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s; white-space: nowrap;
     }
     .cp-btn-outline:hover { border-color: rgba(0,0,0,0.4); }
 
@@ -267,14 +269,16 @@ const GlobalStyles = () => (
     .cp-btn-success:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .cp-map-link {
-      display: inline-block; margin-top: 0.75rem;
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 0.75rem;
       background: #e8f0fe; color: #1a47a0;
       border: 0.5px solid #93c5fd; border-radius: 7px;
       padding: 0.45rem 0.9rem; font-size: 12px; text-decoration: none;
       font-weight: 500;
     }
     .cp-back-link {
-      display: inline-block; margin-top: 0.75rem;
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 0.75rem;
       color: #aaa; font-size: 12px; text-decoration: none;
     }
     .cp-back-link:hover { color: #555; }
@@ -284,9 +288,132 @@ const GlobalStyles = () => (
       font-size: 12.5px; text-align: left; margin-top: 0.5rem;
     }
 
+    /* ── Mobile ── */
     @media (max-width: 640px) {
-      .cp-inner { padding: 1.25rem 1rem; }
-      .cp-bubble { max-width: 85%; }
+      .cp-inner {
+        padding: 1rem 0.875rem;
+      }
+
+      /* Tighter header */
+      .cp-header {
+        margin-bottom: 0.875rem;
+        gap: 0.5rem;
+      }
+      .cp-title {
+        font-size: 1.2rem;
+      }
+
+      /* Shrink outline buttons to icon-only on mobile */
+      .cp-btn-label {
+        display: none;
+      }
+      .cp-btn-outline {
+        padding: 0.5rem 0.65rem;
+        gap: 0;
+      }
+
+      /* Chat shell */
+      .cp-shell {
+        border-radius: 10px;
+        min-height: 60vh;
+      }
+
+      /* Wider bubbles on mobile */
+      .cp-bubble {
+        max-width: 84%;
+        font-size: 13px;
+        padding: 0.6rem 0.85rem;
+      }
+
+      /* Tighter message area */
+      .cp-messages {
+        padding: 0.875rem;
+        gap: 0.5rem;
+      }
+
+      /* Input area */
+      .cp-input-area {
+        padding: 0.65rem 0.875rem;
+        gap: 0.5rem;
+      }
+      .cp-input {
+        font-size: 13px;
+        padding: 0.6rem 0.9rem;
+      }
+
+      /* Top bar */
+      .cp-bar {
+        padding: 0.65rem 0.875rem;
+      }
+      .cp-bar-sub {
+        font-size: 10px;
+      }
+
+      /* Claim bar */
+      .cp-claim-bar {
+        padding: 0.65rem 0.875rem;
+      }
+      .cp-btn-success {
+        font-size: 13px;
+        padding: 0.7rem 1rem;
+      }
+
+      /* Gate — align to top so content isn't cut off on short screens */
+      .cp-gate {
+        padding: 1rem 0.875rem 1.5rem;
+        align-items: flex-start;
+      }
+      .cp-gate-box {
+        padding: 1.5rem 1.1rem;
+        border-radius: 10px;
+        max-width: 100%;
+        /* Remove inner border/bg since it floats on the shell already */
+        border: none;
+        background: transparent;
+      }
+      .cp-gate-icon {
+        width: 44px; height: 44px;
+        margin-bottom: 1rem;
+      }
+      .cp-gate-title {
+        font-size: 0.95rem;
+      }
+      .cp-gate-desc {
+        font-size: 12.5px;
+        margin-bottom: 1.1rem;
+      }
+      .cp-gate-input {
+        font-size: 13px;
+        padding: 0.6rem 0.85rem;
+      }
+
+      /* Admin box */
+      .cp-admin-box {
+        padding: 0.875rem;
+      }
+      .cp-admin-row {
+        font-size: 12px;
+      }
+
+      /* Map link full-width on mobile */
+      .cp-map-link {
+        display: flex;
+        justify-content: center;
+      }
+
+      /* Question box */
+      .cp-question-box {
+        padding: 0.75rem 0.875rem;
+      }
+      .cp-question-text {
+        font-size: 13px;
+      }
+
+      /* Info boxes */
+      .cp-info-box {
+        font-size: 12px;
+        padding: 0.7rem 0.875rem;
+      }
     }
   `}</style>
 );
@@ -424,10 +551,10 @@ export default function ChatPage() {
       const vData = await vRes.json();
       const v = vData.verification;
       setVerificationData(v);
-      if (!v)            setVerificationStatus('no_question');
+      if (!v)               setVerificationStatus('no_question');
       else if (v.is_locked) setVerificationStatus('locked');
       else if (v.is_passed) setVerificationStatus('passed');
-      else               setVerificationStatus('pending');
+      else                  setVerificationStatus('pending');
     } else {
       if (vRes.status === 404) setVerificationStatus('no_question');
     }
@@ -484,13 +611,13 @@ export default function ChatPage() {
                   className="cp-btn-outline"
                   onClick={() => setShowVerificationPanel(p => !p)}
                 >
-                  <IconShield size={12} />
-                  Verification
+                  <IconShield size={13} />
+                  <span className="cp-btn-label">Verification</span>
                 </button>
               )}
               <Link href="/claims" className="cp-btn-outline">
-                <IconArrowLeft size={11} />
-                Claims
+                <IconArrowLeft size={12} />
+                <span className="cp-btn-label">Claims</span>
               </Link>
             </div>
           </div>
@@ -610,11 +737,11 @@ function VerificationGate({
   verificationStatus, verificationData,
   onVerificationUpdate,
 }) {
-  const [question, setQuestion]       = useState('');
-  const [answer, setAnswer]           = useState('');
+  const [question, setQuestion]         = useState('');
+  const [answer, setAnswer]             = useState('');
   const [submitAnswer, setSubmitAnswer] = useState('');
-  const [result, setResult]           = useState(null);
-  const [saving, setSaving]           = useState(false);
+  const [result, setResult]             = useState(null);
+  const [saving, setSaving]             = useState(false);
 
   const MAX_ATTEMPTS  = 3;
   const attemptsLeft  = verificationData

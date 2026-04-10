@@ -53,12 +53,13 @@ export default function ReportLostPage() {
 
         .rfl-page { min-height: 100vh; background: #f5f4f0; font-family: 'DM Sans', sans-serif; }
 
+        /* NAV */
         .rfl-nav {
           display: flex; align-items: center; justify-content: space-between;
           padding: 0 2.5rem; height: 60px; background: #f5f4f0;
-          border-bottom: 0.5px solid #ddd;
+          border-bottom: 0.5px solid #ddd; position: sticky; top: 0; z-index: 10;
         }
-        .rfl-nav-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .rfl-nav-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; flex-shrink: 0; }
         .rfl-nav-logo svg { width: 18px; height: 18px; stroke: #111; }
         .rfl-nav-brand { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; color: #111; }
         .rfl-nav-brand span { font-weight: 300; }
@@ -67,16 +68,18 @@ export default function ReportLostPage() {
           font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
           color: #888; cursor: pointer; background: none; border: none;
           font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.15s;
+          white-space: nowrap;
         }
         .rfl-nav-link:hover { color: #111; }
         .rfl-nav-cta {
           font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
           background: #111; color: #fff; border: none; padding: 8px 18px;
           border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif;
-          font-weight: 500; transition: background 0.15s;
+          font-weight: 500; transition: background 0.15s; white-space: nowrap;
         }
         .rfl-nav-cta:hover { background: #333; }
 
+        /* FORM WRAPPER */
         .rfl-wrapper { max-width: 560px; margin: 0 auto; padding: 3rem 2rem 4rem; }
         .rfl-eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #999; margin-bottom: 6px; }
         .rfl-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #111; line-height: 1.15; margin-bottom: 8px; }
@@ -85,6 +88,7 @@ export default function ReportLostPage() {
 
         .rfl-error { border: 0.5px solid #111; border-left: 2px solid #111; color: #111; padding: 10px 14px; border-radius: 2px; margin-bottom: 1.5rem; font-size: 13px; }
 
+        /* FIELDS */
         .rfl-form { display: flex; flex-direction: column; }
         .rfl-field { padding: 14px 0; border-top: 0.5px solid #ddd; display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; }
         .rfl-field:last-of-type { border-bottom: 0.5px solid #ddd; }
@@ -102,6 +106,7 @@ export default function ReportLostPage() {
           background-repeat: no-repeat; background-position: right 4px center; padding-right: 18px; cursor: pointer;
         }
 
+        /* FILE UPLOAD */
         .rfl-file-wrap { position: relative; display: inline-flex; }
         .rfl-file-btn {
           display: inline-flex; align-items: center; gap: 6px; background: #fff;
@@ -113,6 +118,7 @@ export default function ReportLostPage() {
         .rfl-file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
         .rfl-preview { width: 100%; max-height: 160px; object-fit: cover; margin-top: 10px; border: 0.5px solid #ccc; border-radius: 2px; display: block; filter: grayscale(15%); }
 
+        /* BUTTONS */
         .rfl-btn-row { display: flex; gap: 10px; margin-top: 1.75rem; }
         .rfl-btn-cancel {
           flex: 0 0 auto; background: transparent; color: #888; border: 0.5px solid #ccc;
@@ -128,12 +134,45 @@ export default function ReportLostPage() {
         .rfl-btn-submit:hover:not(:disabled) { background: #333; }
         .rfl-btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
+        /* ── MOBILE ── */
         @media (max-width: 600px) {
+          /* Nav: hide text links, keep only sign out */
           .rfl-nav { padding: 0 1.25rem; }
-          .rfl-nav-links { gap: 1rem; }
-          .rfl-wrapper { padding: 2rem 1.25rem 3rem; }
-          .rfl-field { grid-template-columns: 1fr; gap: 4px; }
+          .rfl-nav-links { gap: 0.75rem; }
+          .rfl-nav-link { display: none; }
+          .rfl-nav-cta { padding: 7px 14px; font-size: 11px; }
+
+          /* Wrapper */
+          .rfl-wrapper { padding: 1.75rem 1.25rem 3rem; }
+
+          /* Title */
+          .rfl-title { font-size: 22px; }
+
+          /* Fields: single column */
+          .rfl-field {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            padding: 12px 0;
+          }
           .rfl-flabel { padding-top: 0; }
+
+          /* Inputs: font-size 16px prevents iOS auto-zoom on focus */
+          .rfl-field input[type="text"],
+          .rfl-field input[type="date"],
+          .rfl-field select,
+          .rfl-field textarea {
+            font-size: 16px;
+            padding: 8px 0;
+          }
+
+          /* File upload: full width */
+          .rfl-file-wrap { width: 100%; }
+          .rfl-file-btn { width: 100%; justify-content: center; padding: 10px 14px; }
+
+          /* Buttons: stack vertically, full width */
+          .rfl-btn-row { flex-direction: column-reverse; gap: 8px; margin-top: 1.5rem; }
+          .rfl-btn-cancel { flex: unset; width: 100%; text-align: center; padding: 11px; }
+          .rfl-btn-submit { padding: 13px; font-size: 13px; }
         }
       `}</style>
 
@@ -143,7 +182,7 @@ export default function ReportLostPage() {
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
             </svg>
-            <span className="rfl-nav-brand">FIND<span>IT</span></span>
+            <span className="rfl-nav-brand">FIND<span>BASE</span></span>
           </div>
           <div className="rfl-nav-links">
             <button className="rfl-nav-link" onClick={() => router.push('/dashboard')}>Dashboard</button>
