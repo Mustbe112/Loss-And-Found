@@ -21,7 +21,7 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 1.5rem 3rem;
+          padding: 1.25rem 1.5rem;
           border-bottom: 0.5px solid #e8e8e8;
         }
         .nav-brand {
@@ -38,27 +38,27 @@ export default function Home() {
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.5rem;
         }
         .nav-login {
           font-size: 0.82rem;
           color: #666;
           text-decoration: none;
           letter-spacing: 0.04em;
-          padding: 0.5rem 1rem;
+          padding: 0.45rem 0.75rem;
           border-radius: 4px;
           transition: color 0.2s;
         }
         .nav-login:hover { color: #0d0d0d; }
         .nav-cta {
-          font-size: 0.8rem;
+          font-size: 0.78rem;
           font-weight: 500;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           background: #0d0d0d;
           color: #fff;
           text-decoration: none;
-          padding: 0.55rem 1.25rem;
+          padding: 0.5rem 1rem;
           border-radius: 4px;
           transition: background 0.2s;
         }
@@ -99,7 +99,7 @@ export default function Home() {
 
         .hero-left h1 {
           font-family: 'Playfair Display', serif;
-          font-size: clamp(2.8rem, 4vw, 4rem);
+          font-size: clamp(2.4rem, 4vw, 4rem);
           color: #0d0d0d;
           line-height: 1.1;
           margin-bottom: 1.5rem;
@@ -248,12 +248,116 @@ export default function Home() {
           margin-bottom: 1.5rem;
         }
 
-        @media (max-width: 768px) {
+        /* ── Mobile (≤ 480px) ── */
+        @media (max-width: 480px) {
+          .nav {
+            padding: 1rem 1.25rem;
+          }
+          .nav-brand {
+            font-size: 0.75rem;
+          }
+          .nav-cta {
+            font-size: 0.72rem;
+            padding: 0.45rem 0.85rem;
+          }
+
+          .hero {
+            grid-template-columns: 1fr;
+            min-height: auto;
+          }
+
+          .hero-left {
+            padding: 2.5rem 1.25rem 2rem;
+            border-right: none;
+            border-bottom: 0.5px solid #e8e8e8;
+          }
+
+          .hero-left h1 {
+            font-size: 2.2rem;
+          }
+
+          .hero-left p {
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            max-width: 100%;
+          }
+
+          .hero-actions {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.85rem;
+          }
+
+          .btn-primary {
+            width: 100%;
+            justify-content: center;
+            padding: 0.9rem 1.5rem;
+          }
+
+          .hero-stats {
+            gap: 1.25rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+          }
+
+          .stat-num {
+            font-size: 1.4rem;
+          }
+
+          .hero-right {
+            padding: 2rem 1.25rem 2.5rem;
+          }
+
+          .feature-card {
+            padding: 1rem 1.1rem;
+          }
+
+          .feature-text h3 {
+            font-size: 0.85rem;
+          }
+
+          .feature-text p {
+            font-size: 0.76rem;
+          }
+        }
+
+        /* ── Small tablet / large phone (481px – 768px) ── */
+        @media (min-width: 481px) and (max-width: 768px) {
           .nav { padding: 1.25rem 1.5rem; }
-          .hero { grid-template-columns: 1fr; min-height: auto; }
-          .hero-left { padding: 3rem 1.5rem; border-right: none; border-bottom: 0.5px solid #e8e8e8; }
-          .hero-right { padding: 3rem 1.5rem; }
+
+          .hero {
+            grid-template-columns: 1fr;
+            min-height: auto;
+          }
+
+          .hero-left {
+            padding: 3rem 2rem;
+            border-right: none;
+            border-bottom: 0.5px solid #e8e8e8;
+          }
+
+          .hero-left h1 {
+            font-size: clamp(2.4rem, 6vw, 3rem);
+          }
+
+          .hero-left p {
+            max-width: 100%;
+          }
+
+          .hero-actions {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+          }
+
+          .btn-primary {
+            flex: 1;
+            justify-content: center;
+            min-width: 160px;
+          }
+
           .hero-stats { gap: 1.5rem; }
+
+          .hero-right { padding: 2.5rem 2rem; }
         }
       `}</style>
 
