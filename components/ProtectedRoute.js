@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
   useEffect(() => {
     if (!loading) {
       if (!user) router.push('/login');
-      else if (adminOnly && user.role !== 'admin') router.push('/dashboard');
+      else if (adminOnly && user?.role !== 'admin') router.push('/');
     }
   }, [user, loading, adminOnly]);
 
@@ -22,7 +22,10 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
   );
 
   if (!user) return null;
-  if (adminOnly && user.role !== 'admin') return null;
+  if (adminOnly && user?.role !== 'admin') {
+    router.push('/');
+    return null;
+  }
 
   return children;
 }

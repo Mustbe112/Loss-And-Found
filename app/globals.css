@@ -5,9 +5,9 @@
 }
 
 body {
-  background: #0f0f1a;
-  color: #fff;
-  font-family: 'Segoe UI', sans-serif;
+  background: #f5f3ef;
+  color: #1a1a18;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 a {
@@ -15,20 +15,24 @@ a {
 }
 
 input, textarea, select {
-  background: #1a1a2e;
-  color: #fff;
-  border: 1px solid #333;
+  background: #fff;
+  color: #1a1a18;
+  border: 1px solid #e8e4de;
   padding: 0.6rem 1rem;
-  border-radius: 6px;
+  border-radius: 12px;
   width: 100%;
   font-size: 1rem;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: #1a1a18;
 }
 
 button {
   cursor: pointer;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -3,469 +3,209 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
+import AdminNavbar from '@/components/AdminNavbar';
 import Link from 'next/link';
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
-const fmt = (d) => d ? new Date(d).toLocaleDateString() : '—';
-const categoryIcon = (c = '') =>
-  ({ Phone: '📱', Wallet: '👜', Keys: '🔑', Bag: '🎒', Electronics: '💻' }[c] ?? '📦');
+function StatCard({ label, value, sub, pillLabel, pillStyle }) {
+  return (
+    <div style={cardBase}>
+      <p style={statLabelStyle}>{label}</p>
+      <p style={statValueStyle}>{value ?? '—'}</p>
+      <p style={statSubStyle}>{sub}</p>
+      {pillLabel && <span style={{ ...pillBase, ...pillStyle }}>{pillLabel}</span>}
+    </div>
+  );
+}
 
-// ─── DeliverModal ─────────────────────────────────────────────────────────────
-function DeliverModal({ item, onSuccess, onClose, authFetch }) {
-  const [form, setForm] = useState({ full_name: '', id_number: '', phone: '', email: '', notes: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [delivered, setDelivered] = useState(false);
+function ClaimBar({ label, count, total, color }) {
+  const pct = total ? Math.round((count / total) * 100) : 0;
+  return (
+    <div style={{ marginBottom: '1.1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '7px' }}>
+        <span style={{ color: '#888', fontSize: '0.82rem' }}>{label}</span>
+        <span style={{ color: '#1a1a18', fontSize: '0.82rem', fontWeight: 500 }}>
+          {count} <span style={{ color: '#ccc', fontWeight: 300 }}>({pct}%)</span>
+        </span>
+      </div>
+      <div style={{ height: '5px', background: '#f0ece6', borderRadius: '10px' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '10px', transition: 'width 0.8s ease' }} />
+      </div>
+    </div>
+  );
+}
 
-  const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleSubmit = async () => {
-    setError('');
-    if (!form.full_name.trim() || !form.id_number.trim() || !form.phone.trim()) {
-      setError('Full name, ID number and phone are required.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await authFetch(`/api/admin/items/${item.found_item.id}/deliver`, {
-        method: 'POST',
-        body: JSON.stringify({ claim_id: item.claim_id, ...form }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Delivery failed');
-      setDelivered(true);
-      setTimeout(() => { onSuccess(); onClose(); }, 1800);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+function ActivityRow({ type, text, time, status }) {
+  const dotColors = { report: '#c07070', claim: '#6b8fa0', item: '#7a9e7e' };
+  const badgeStyles = {
+    open:     { background: '#f0f7f1', color: '#5a8a5e' },
+    pending:  { background: '#faf5e8', color: '#a07a20' },
+    approved: { background: '#f0f7f1', color: '#5a8a5e' },
+    rejected: { background: '#fdf0ef', color: '#a04040' },
+    resolved: { background: '#f0eef8', color: '#6060a0' },
   };
-
   return (
-    <div style={modalBackdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={modalBox}>
-        {delivered ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
-            <p style={{ fontSize: '3rem', margin: '0 0 0.75rem' }}>✅</p>
-            <p style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 0.4rem' }}>Successfully Delivered!</p>
-            <p style={{ color: '#888', fontSize: '0.85rem', margin: 0 }}>The item has been marked as delivered.</p>
-          </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-              <div>
-                <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 0.3rem' }}>📬 Deliver Item</h2>
-                <p style={{ color: '#888', fontSize: '0.82rem', margin: 0 }}>
-                  Fill in recipient info before handing over <strong style={{ color: '#fff' }}>{item.found_item.name}</strong>.
-                </p>
-              </div>
-              <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#666', fontSize: '1.25rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
-            </div>
-
-            {/* Form fields */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <ModalField label="Full Name *"   name="full_name" placeholder="e.g. John Doe"                       value={form.full_name} onChange={handleChange} />
-              <ModalField label="ID Number *"   name="id_number" placeholder="National ID / Student ID / Passport" value={form.id_number} onChange={handleChange} />
-              <ModalField label="Phone *"       name="phone"     type="tel" placeholder="e.g. 0812345678"          value={form.phone}     onChange={handleChange} />
-              <ModalField label="Email"         name="email"     type="email" placeholder="optional"               value={form.email}     onChange={handleChange} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                <label style={modalLabel}>Notes</label>
-                <textarea
-                  name="notes"
-                  rows={2}
-                  placeholder="Any additional notes…"
-                  value={form.notes}
-                  onChange={handleChange}
-                  style={{ ...modalInput, resize: 'none' }}
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p style={{ marginTop: '0.75rem', background: '#3a1a1a', border: '1px solid #e94560', borderRadius: '8px', padding: '0.5rem 0.75rem', color: '#e94560', fontSize: '0.82rem' }}>
-                {error}
-              </p>
-            )}
-
-            {/* Actions */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-              <button onClick={onClose} disabled={loading} style={modalBtnCancel}>Cancel</button>
-              <button onClick={handleSubmit} disabled={loading} style={modalBtnConfirm}>
-                {loading ? 'Saving…' : '✅ Confirm Delivery'}
-              </button>
-            </div>
-          </>
-        )}
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.8rem 0', borderBottom: '1px solid #f5f2ee' }}>
+      <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: dotColors[type] || '#ccc', marginTop: '5px', flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <p style={{ color: '#555', fontSize: '0.82rem', lineHeight: 1.5, margin: 0 }}>{text}</p>
+        <p style={{ color: '#ccc', fontSize: '0.72rem', marginTop: '2px' }}>{time}</p>
       </div>
-    </div>
-  );
-}
-
-function ModalField({ label, name, type = 'text', placeholder, value, onChange }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-      <label style={modalLabel}>{label}</label>
-      <input type={type} name={name} placeholder={placeholder} value={value} onChange={onChange} style={modalInput} />
-    </div>
-  );
-}
-
-// ─── Shared item card ────────────────────────────────────────────────────────
-function ItemCard({ foundItem, lostItem, claimant, respondent, attempts, date, children }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div style={cardWrap}>
-      <div style={cardRow}>
-        <img
-          src={foundItem.image_url || '/placeholder.png'}
-          alt={foundItem.name}
-          style={thumbStyle}
-        />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-            <span>🔒</span>
-            <strong style={{ color: '#fff', fontSize: '1rem' }}>{foundItem.name}</strong>
-          </div>
-          <div style={{ color: '#aaa', fontSize: '0.82rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <span>📍 Found at: {foundItem.location}</span>
-            <span>{categoryIcon(foundItem.category)} {foundItem.category}</span>
-            {attempts != null && <span>· Claimant failed {attempts} attempts</span>}
-            {date && <span>· {fmt(date)}</span>}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-          {children}
-          <button onClick={() => setOpen(o => !o)} style={detailsBtn}>
-            {open ? '▲' : '▼'} Details
-          </button>
-        </div>
-      </div>
-
-      {open && (
-        <div style={detailsPanel}>
-          <div style={detailsGrid}>
-            <div>
-              <p style={detailHead}>📦 Found Item</p>
-              {foundItem.description && <p style={detailTxt}>{foundItem.description}</p>}
-              <p style={detailTxt}>📍 {foundItem.location} · {fmt(foundItem.date)}</p>
-            </div>
-            {lostItem && (
-              <div>
-                <p style={detailHead}>🔍 Lost Item (claimant&apos;s)</p>
-                <p style={detailTxt}><strong>{lostItem.name}</strong></p>
-                {lostItem.description && <p style={detailTxt}>{lostItem.description}</p>}
-                <p style={detailTxt}>📍 {lostItem.location} · {fmt(lostItem.date)}</p>
-              </div>
-            )}
-            <div>
-              <p style={detailHead}>👤 Claimant (lost person)</p>
-              <p style={detailTxt}>{claimant?.name} · {claimant?.email}</p>
-            </div>
-            <div>
-              <p style={detailHead}>🙋 Respondent (finder)</p>
-              <p style={detailTxt}>{respondent?.name} · {respondent?.email}</p>
-            </div>
-          </div>
-        </div>
+      {status && (
+        <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '20px', flexShrink: 0, marginTop: '2px', ...(badgeStyles[status] || {}) }}>{status}</span>
       )}
     </div>
   );
 }
 
-// ─── Hand-In Section ─────────────────────────────────────────────────────────
-function HandInSection({ items, onAction, actionLoading }) {
-  return (
-    <section style={sectionWrap}>
-      <div style={sectionHeader}>
-        <div>
-          <h2 style={sectionTitle}>🤝 Hand In</h2>
-          <p style={sectionSub}>
-            The finder has been asked to drop these items off at the admin office.
-            Confirm once they physically hand it in.
-          </p>
-        </div>
-        {items.length > 0 && <span style={badgeBlue}>{items.length} pending</span>}
-      </div>
+function Dashboard() {
+  const { authFetch } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-      {items.length === 0
-        ? <p style={emptyTxt}>No items awaiting hand-in.</p>
-        : items.map(entry => (
-          <ItemCard
-            key={entry.found_item.id}
-            foundItem={entry.found_item}
-            lostItem={entry.lost_item}
-            claimant={entry.claimant}
-            respondent={entry.respondent}
-            attempts={entry.attempts}
-            date={entry.created_at}
-          >
-            <button
-              style={btnConfirm}
-              disabled={actionLoading === entry.found_item.id}
-              onClick={() => onAction(entry.found_item.id, entry.claim_id, 'confirm')}
-            >
-              {actionLoading === entry.found_item.id ? '…' : '✅ Handed In'}
-            </button>
-            <button
-              style={btnReject}
-              disabled={actionLoading === entry.found_item.id}
-              onClick={() => onAction(entry.found_item.id, entry.claim_id, 'reject')}
-            >
-              ❌ Not Yet
-            </button>
-          </ItemCard>
-        ))
+  useEffect(() => {
+    async function load() {
+      try {
+        const itemsRes  = await authFetch('/api/admin/items');
+        const itemsData = await itemsRes.json();
+        const items = itemsData.items || [];
+        const lostItems  = items.filter(i => i.type === 'lost');
+        const foundItems = items.filter(i => i.type === 'found');
+
+        const rptRes  = await authFetch('/api/admin/reports');
+        const rptData = await rptRes.json();
+        const reports = rptData.reports || [];
+
+        const claimRes  = await authFetch('/api/admin/locked-claims');
+        const claimData = await claimRes.json();
+        const allClaims = [...(claimData.pendingHandover || []), ...(claimData.lockedClaims || [])];
+
+        const claimStatuses = { pending: 0, approved: 0, rejected: 0 };
+        allClaims.forEach(c => {
+          if (c.claim_status === 'pending') claimStatuses.pending++;
+          else if (c.claim_status === 'approved') claimStatuses.approved++;
+          else if (c.claim_status === 'rejected') claimStatuses.rejected++;
+        });
+
+        setStats({
+          lostCount: lostItems.length,
+          foundCount: foundItems.length,
+          totalClaims: allClaims.length,
+          claimStatuses,
+          openReports: reports.filter(r => r.status === 'open').length,
+          resolvedReports: reports.filter(r => r.status === 'resolved').length,
+        });
+
+        const acts = [
+          ...reports.slice(0, 5).map(r => ({
+            type: 'report',
+            text: `${r.reporter?.name || 'User'} reported: "${r.reason?.slice(0, 50)}..."`,
+            time: new Date(r.created_at).toLocaleString(),
+            status: r.status,
+          })),
+          ...allClaims.slice(0, 5).map(c => ({
+            type: 'claim',
+            text: `Claim on "${c.found_item?.name || 'item'}" by ${c.claimant?.name || 'user'}`,
+            time: new Date(c.created_at).toLocaleString(),
+            status: c.claim_status,
+          })),
+        ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 8);
+
+        setActivity(acts);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
-    </section>
-  );
-}
-
-// ─── Admin Office Section ────────────────────────────────────────────────────
-function AdminOfficeSection({ items, onUndo, onDeliver, actionLoading }) {
-  return (
-    <section style={sectionWrap}>
-      <div style={sectionHeader}>
-        <div>
-          <h2 style={sectionTitle}>📦 Items at Admin Office</h2>
-          <p style={sectionSub}>
-            Hand-in confirmed. Click Deliver when the claimant comes to pick up their item.
-          </p>
-        </div>
-        {items.length > 0 && <span style={badgeRed}>{items.length} pending</span>}
-      </div>
-
-      {items.length === 0
-        ? <p style={emptyTxt}>No items currently at the admin office.</p>
-        : items.map(entry => (
-          <ItemCard
-            key={entry.vq_id}
-            foundItem={entry.found_item}
-            lostItem={entry.lost_item}
-            claimant={entry.claimant}
-            respondent={entry.respondent}
-            attempts={entry.attempts}
-            date={entry.confirmed_at}
-          >
-            <span style={badgeFailedInline}>Verification Failed</span>
-            <button
-              style={btnUndo}
-              disabled={actionLoading === entry.found_item.id}
-              onClick={() => onUndo(entry.found_item.id, entry.claim_id)}
-            >
-              ↩ Undo
-            </button>
-            {/* NEW: Deliver button */}
-            <button
-              style={btnDeliver}
-              disabled={actionLoading === entry.found_item.id}
-              onClick={() => onDeliver(entry)}
-            >
-              📬 Deliver
-            </button>
-          </ItemCard>
-        ))
-      }
-    </section>
-  );
-}
-
-// ─── Main Page ───────────────────────────────────────────────────────────────
-export default function AdminDashboard() {
-  const { authFetch, user } = useAuth();
-  const [pendingHandover, setPendingHandover] = useState([]);
-  const [lockedClaims, setLockedClaims]       = useState([]);
-  const [reports, setReports]                 = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [actionLoading, setActionLoading]     = useState(null);
-  const [deliverTarget, setDeliverTarget]     = useState(null); // entry to deliver
-
-  const fetchData = async () => {
-    try {
-      const [lockedRes, reportsRes] = await Promise.all([
-        authFetch('/api/admin/locked-claims'),
-        authFetch('/api/admin/reports'),
-      ]);
-      const lockedData  = await lockedRes.json();
-      const reportsData = await reportsRes.json();
-      setPendingHandover(lockedData.pendingHandover ?? []);
-      setLockedClaims(lockedData.lockedClaims       ?? []);
-      setReports(reportsData.reports                ?? []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => { if (user) fetchData(); }, [user]);
-
-  const handleHandInAction = async (itemId, claimId, action) => {
-    setActionLoading(itemId);
-    try {
-      const res = await authFetch(`/api/admin/items/${itemId}/handin`, {
-        method: 'PATCH',
-        body: JSON.stringify({ action, claim_id: claimId }),
-      });
-      if (res.ok) {
-        await fetchData();
-      } else {
-        const err = await res.json();
-        alert(err.error ?? 'Something went wrong');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Network error');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDeliverySuccess = async () => {
-    setDeliverTarget(null);
-    await fetchData(); // refresh list — delivered item will disappear
-  };
+    load();
+  }, []);
 
   if (loading) return (
-    <ProtectedRoute adminOnly>
-      <Navbar />
-      <div style={pageStyle}>
-        <p style={{ color: '#aaa', textAlign: 'center', marginTop: '4rem' }}>Loading…</p>
-      </div>
-    </ProtectedRoute>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+      <div style={spinnerStyle} />
+    </div>
   );
 
-  return (
-    <ProtectedRoute adminOnly>
-      <Navbar />
-      <div style={pageStyle}>
+  const total = stats?.totalClaims || 0;
 
-        {/* Stats */}
-        <div style={statsRow}>
-          <StatCard label="Pending Hand-In"  value={pendingHandover.length} color="#f0a500" />
-          <StatCard label="At Admin Office"  value={lockedClaims.length}    color="#e94560" />
-          <StatCard label="Open Reports"
-            value={reports.filter(r => r.status === 'open').length}
-            color="#4fc3f7"
-          />
+  return (
+    <div style={pageStyle}>
+      <div style={innerStyle}>
+        <div style={headerStyle}>
+          <div>
+            <h1 style={h1Style}>Dashboard</h1>
+            <p style={dateStyle}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              &nbsp;·&nbsp;System overview
+            </p>
+          </div>
+          <Link href="/admin/management" style={actionBtnStyle}>+ Accept Walk-In</Link>
         </div>
 
-        {/* 🤝 Hand In */}
-        <HandInSection
-          items={pendingHandover}
-          onAction={handleHandInAction}
-          actionLoading={actionLoading}
-        />
+        <div style={gridStyle}>
+          <StatCard label="Lost Items"   value={stats?.lostCount}   sub="Reported by users"      pillLabel="Active"    pillStyle={{ background: '#1a1a18', color: '#f5f3ef' }} />
+          <StatCard label="Found Items"  value={stats?.foundCount}  sub="Submitted to system"    pillLabel="In system" pillStyle={{ background: '#eaf1f5', color: '#4a7a90' }} />
+          <StatCard label="Total Claims" value={total}              sub={`${stats?.claimStatuses?.pending || 0} pending review`} pillLabel={`${stats?.claimStatuses?.pending || 0} pending`} pillStyle={{ background: '#faf3e0', color: '#a07820' }} />
+          <StatCard label="Open Reports" value={stats?.openReports} sub={`${stats?.resolvedReports || 0} resolved`} pillLabel={`${stats?.resolvedReports || 0} resolved`} pillStyle={{ background: '#eef5ee', color: '#4a8050' }} />
+        </div>
 
-        {/* 📦 Admin Office */}
-        <AdminOfficeSection
-          items={lockedClaims}
-          onUndo={(itemId, claimId) => handleHandInAction(itemId, claimId, 'reject')}
-          onDeliver={(entry) => setDeliverTarget(entry)}
-          actionLoading={actionLoading}
-        />
-
-        {/* Recent Reports */}
-        <section style={sectionWrap}>
-          <div style={sectionHeader}>
-            <h2 style={sectionTitle}>🚨 Recent Reports</h2>
-            <Link href="/admin/reports" style={viewAllLink}>View all →</Link>
+        <div style={lowerGrid}>
+          <div style={sectionCard}>
+            <div style={sectionHead}>
+              <h2 style={sectionTitle}>Claims Breakdown</h2>
+            </div>
+            <ClaimBar label="Pending"  count={stats?.claimStatuses?.pending  || 0} total={total} color="#c09a40" />
+            <ClaimBar label="Approved" count={stats?.claimStatuses?.approved || 0} total={total} color="#7a9e7e" />
+            <ClaimBar label="Rejected" count={stats?.claimStatuses?.rejected || 0} total={total} color="#c07070" />
+            <div style={quickLinks}>
+              <Link href="/admin/management" style={miniLinkStyle}>Hand-in Queue</Link>
+              <Link href="/admin/registry"   style={miniLinkStyle}>Item Registry</Link>
+            </div>
           </div>
-          {reports.length === 0
-            ? <p style={emptyTxt}>No reports yet.</p>
-            : reports.slice(0, 5).map(r => (
-              <div key={r.id} style={reportRow}>
-                <div style={{ flex: 1 }}>
-                  <p style={{ color: '#fff', margin: 0 }}>{r.reason}</p>
-                  <p style={{ color: '#aaa', fontSize: '0.8rem', margin: '0.2rem 0 0' }}>
-                    👤 {r.reporter?.name} · {r.reporter?.email} · {fmt(r.created_at)}
-                  </p>
-                </div>
-                <StatusBadge status={r.status} />
-              </div>
-            ))
-          }
-        </section>
 
+          <div style={sectionCard}>
+            <div style={sectionHead}>
+              <h2 style={sectionTitle}>Recent Activity</h2>
+              <Link href="/admin/users" style={sectionLinkStyle}>View users</Link>
+            </div>
+            {activity.length === 0
+              ? <p style={{ color: '#bbb', fontSize: '0.85rem' }}>No recent activity.</p>
+              : activity.map((a, i) => <ActivityRow key={i} {...a} />)
+            }
+          </div>
+        </div>
       </div>
-
-      {/* Deliver Modal — mounted outside sections so it overlays everything */}
-      {deliverTarget && (
-        <DeliverModal
-          item={deliverTarget}
-          authFetch={authFetch}
-          onSuccess={handleDeliverySuccess}
-          onClose={() => setDeliverTarget(null)}
-        />
-      )}
-
-    </ProtectedRoute>
-  );
-}
-
-// ─── Small components ────────────────────────────────────────────────────────
-function StatCard({ label, value, color }) {
-  return (
-    <div style={{ ...statCard, borderTop: `3px solid ${color}` }}>
-      <p style={{ fontSize: '2rem', fontWeight: 'bold', color, margin: 0 }}>{value}</p>
-      <p style={{ color: '#aaa', fontSize: '0.85rem', margin: '0.3rem 0 0' }}>{label}</p>
     </div>
   );
 }
 
-function StatusBadge({ status }) {
-  const map = {
-    open:         { bg: '#333',    color: '#fff',    label: 'open' },
-    under_review: { bg: '#f0a500', color: '#000',    label: 'under review' },
-    resolved:     { bg: '#1a472a', color: '#4caf50', label: 'resolved' },
-  };
-  const s = map[status] ?? map.open;
+export default function AdminDashboardPage() {
   return (
-    <span style={{ background: s.bg, color: s.color, borderRadius: '20px', padding: '0.2rem 0.75rem', fontSize: '0.8rem', border: `1px solid ${s.color}` }}>
-      {s.label}
-    </span>
+    <ProtectedRoute adminOnly>
+      <AdminNavbar />
+      <Dashboard />
+    </ProtectedRoute>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-const pageStyle     = { maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' };
-const statsRow      = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '1rem', marginBottom: '2rem' };
-const statCard      = { background: '#1a1a2e', borderRadius: '10px', padding: '1.25rem 1.5rem', border: '1px solid #2a2a40' };
-
-const sectionWrap   = { background: '#1a1a2e', borderRadius: '12px', padding: '1.75rem', border: '1px solid #2a2a40', marginBottom: '1.5rem' };
-const sectionHeader = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', gap: '1rem' };
-const sectionTitle  = { fontSize: '1.2rem', fontWeight: 'bold', color: '#fff', margin: '0 0 0.25rem' };
-const sectionSub    = { color: '#888', fontSize: '0.82rem', margin: 0 };
-const emptyTxt      = { color: '#555', fontStyle: 'italic', textAlign: 'center', padding: '1rem 0', margin: 0 };
-
-const cardWrap      = { background: '#12122a', borderRadius: '10px', border: '1px solid #2e2e4a', marginBottom: '0.85rem', overflow: 'hidden' };
-const cardRow       = { display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', flexWrap: 'wrap' };
-const thumbStyle    = { width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, background: '#2a2a40' };
-const detailsBtn    = { background: 'transparent', color: '#aaa', border: '1px solid #444', borderRadius: '6px', padding: '0.3rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' };
-const detailsPanel  = { borderTop: '1px solid #2e2e4a', padding: '1rem 1.25rem', background: '#0f0f25' };
-const detailsGrid   = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '1rem' };
-const detailHead    = { color: '#e94560', fontSize: '0.78rem', fontWeight: 'bold', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem' };
-const detailTxt     = { color: '#bbb', fontSize: '0.85rem', margin: '0 0 0.25rem' };
-
-const badgeBlue         = { background: '#1a3a5c', color: '#4fc3f7', borderRadius: '20px', padding: '0.25rem 0.85rem', fontSize: '0.8rem', border: '1px solid #4fc3f7', whiteSpace: 'nowrap', alignSelf: 'flex-start' };
-const badgeRed          = { background: '#3a1a1a', color: '#e94560', borderRadius: '20px', padding: '0.25rem 0.85rem', fontSize: '0.8rem', border: '1px solid #e94560', whiteSpace: 'nowrap', alignSelf: 'flex-start' };
-const badgeFailedInline = { background: '#3a1a1a', color: '#e94560', borderRadius: '20px', padding: '0.25rem 0.85rem', fontSize: '0.8rem', border: '1px solid #e94560', whiteSpace: 'nowrap' };
-
-const btnConfirm    = { background: '#1a472a', color: '#4caf50', border: '1px solid #4caf50', borderRadius: '6px', padding: '0.35rem 0.85rem', fontSize: '0.82rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' };
-const btnReject     = { background: '#3a1a1a', color: '#e94560', border: '1px solid #e94560', borderRadius: '6px', padding: '0.35rem 0.85rem', fontSize: '0.82rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' };
-const btnUndo       = { background: 'transparent', color: '#aaa', border: '1px solid #555', borderRadius: '6px', padding: '0.3rem 0.65rem', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' };
-const btnDeliver    = { background: '#1a3a2a', color: '#4fc3f7', border: '1px solid #4fc3f7', borderRadius: '6px', padding: '0.35rem 0.85rem', fontSize: '0.82rem', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' };
-
-const reportRow     = { display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 0', borderBottom: '1px solid #1e1e35' };
-const viewAllLink   = { color: '#e94560', fontSize: '0.85rem', textDecoration: 'none', whiteSpace: 'nowrap' };
-
-// ─── Modal styles ─────────────────────────────────────────────────────────────
-const modalBackdrop  = { position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' };
-const modalBox       = { background: '#1e2235', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '440px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' };
-const modalLabel     = { color: '#888', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' };
-const modalInput     = { background: '#141726', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: '#fff', width: '100%', boxSizing: 'border-box', outline: 'none' };
-const modalBtnCancel  = { flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '0.6rem', fontSize: '0.85rem', color: '#aaa', cursor: 'pointer' };
-const modalBtnConfirm = { flex: 1, background: '#e94560', border: 'none', borderRadius: '10px', padding: '0.6rem', fontSize: '0.85rem', fontWeight: 'bold', color: '#fff', cursor: 'pointer' };
+const pageStyle  = { width: '100%', minHeight: '100vh', background: '#f5f3ef', fontFamily: "'DM Sans', 'Segoe UI', sans-serif" };
+const innerStyle = { maxWidth: '1400px', margin: '0 auto', padding: '2.2rem 2.5rem' };
+const h1Style    = { fontFamily: "'Playfair Display', serif", fontSize: '2rem', fontWeight: 400, color: '#1a1a18', letterSpacing: '-0.01em', lineHeight: 1.1 };
+const dateStyle  = { fontSize: '0.75rem', color: '#bbb', marginTop: '6px', fontWeight: 300, letterSpacing: '0.04em' };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' };
+const actionBtnStyle = { background: '#1a1a18', color: '#f5f3ef', border: 'none', padding: '11px 22px', borderRadius: '30px', fontSize: '0.78rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' };
+const gridStyle  = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' };
+const cardBase   = { background: '#fff', border: '1px solid #ede9e2', borderRadius: '18px', padding: '1.6rem 1.5rem' };
+const statLabelStyle = { fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#bbb', fontWeight: 500, marginBottom: '1rem' };
+const statValueStyle = { fontFamily: "'Playfair Display', serif", fontSize: '2.8rem', fontWeight: 400, color: '#1a1a18', lineHeight: 1, marginBottom: '0.4rem' };
+const statSubStyle   = { fontSize: '0.7rem', color: '#bbb', fontWeight: 300 };
+const pillBase       = { display: 'inline-block', marginTop: '1rem', fontSize: '0.65rem', fontWeight: 500, letterSpacing: '0.06em', padding: '3px 10px', borderRadius: '20px' };
+const lowerGrid  = { display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '1.2rem' };
+const sectionCard = { background: '#fff', border: '1px solid #ede9e2', borderRadius: '18px', padding: '1.6rem' };
+const sectionHead = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem', paddingBottom: '1rem', borderBottom: '1px solid #f0ece6' };
+const sectionTitle = { fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#bbb', fontWeight: 500, margin: 0 };
+const sectionLinkStyle = { fontSize: '0.72rem', color: '#1a1a18', textDecoration: 'none', fontWeight: 500, background: '#f5f3ef', padding: '4px 12px', borderRadius: '20px', letterSpacing: '0.04em' };
+const quickLinks = { marginTop: '1.4rem', paddingTop: '1.1rem', borderTop: '1px solid #f0ece6', display: 'flex', gap: '0.6rem' };
+const miniLinkStyle = { fontSize: '0.72rem', color: '#1a1a18', textDecoration: 'none', padding: '7px 16px', border: '1px solid #ddd8d0', borderRadius: '30px', letterSpacing: '0.05em', fontWeight: 500 };
+const spinnerStyle = { width: '32px', height: '32px', border: '2px solid #e8e4de', borderTop: '2px solid #1a1a18', borderRadius: '50%', animation: 'spin 0.8s linear infinite' };
