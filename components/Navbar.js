@@ -75,7 +75,7 @@ export default function Navbar() {
               {user.role === 'admin' && (
                 <Link href="/admin" style={linkStyle}>Admin</Link>
               )}
-              <div style={{
+              <Link href="/profile" style={{
                 width: 34,
                 height: 34,
                 borderRadius: '50%',
@@ -86,10 +86,14 @@ export default function Navbar() {
                 justifyContent: 'center',
                 fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: '0.05em'
-              }}>
+                letterSpacing: '0.05em',
+                textDecoration: 'none',
+                flexShrink: 0,
+              }}
+                title="My Profile"
+              >
                 {initials}
-              </div>
+              </Link>
               <button onClick={logout} style={logoutBtnStyle}>
                 Logout
               </button>
@@ -177,13 +181,14 @@ export default function Navbar() {
         {user ? (
           <>
             {/* User info */}
-            <div style={{
+            <Link href="/profile" onClick={closeMenu} style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.75rem',
               paddingBottom: '1.25rem',
               marginBottom: '0.5rem',
-              borderBottom: '0.5px solid rgba(0,0,0,0.08)'
+              borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+              textDecoration: 'none',
             }}>
               <div style={{
                 width: 38,
@@ -201,10 +206,13 @@ export default function Navbar() {
               }}>
                 {initials}
               </div>
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#0d0d0d' }}>
-                {user.name || 'My Account'}
-              </span>
-            </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: '#0d0d0d' }}>
+                  {user.name || 'My Account'}
+                </div>
+                <div style={{ fontSize: 11, color: '#aaa', marginTop: 1 }}>View Profile</div>
+              </div>
+            </Link>
 
             <MobileLink href="/dashboard" onClick={closeMenu}>Dashboard</MobileLink>
             <MobileLink href="/items/lost" onClick={closeMenu}>Lost Items</MobileLink>
