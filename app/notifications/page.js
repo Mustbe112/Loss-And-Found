@@ -24,20 +24,17 @@ const GlobalStyles = () => (
       padding: 2rem 1.5rem;
     }
 
-    /* Header */
     .np-header {
       display: flex; justify-content: space-between;
       align-items: flex-start; margin-bottom: 2rem; gap: 1rem;
     }
 
-    /* Two-col grid */
     .np-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
     }
 
-    /* Match items inside a card */
     .np-match-items {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -130,7 +127,7 @@ function Badge({ label, status }) {
 }
 
 /* ─────────────── SECTION CARD ─────────────── */
-function Section({ title, link, Icon, children }) {
+function Section({ title, Icon, children }) {
   return (
     <div style={{
       background: '#fff',
@@ -148,14 +145,6 @@ function Section({ title, link, Icon, children }) {
           <span style={{ color: '#888', display: 'flex' }}><Icon size={15} /></span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#0d0d0d' }}>{title}</span>
         </div>
-        {link && (
-          <Link href={link} style={{
-            fontSize: 12, color: '#888', textDecoration: 'none',
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            View all <IconArrowRight />
-          </Link>
-        )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         {children}
@@ -195,7 +184,7 @@ function NotifRow({ n }) {
   );
 }
 
-/* ─────────────── MATCH SCORE COLOR ─────────────── */
+/* ─────────────── SCORE COLORS ─────────────── */
 function scoreColor(score) {
   if (score >= 80) return '#1a6b3c';
   if (score >= 50) return '#92600a';
@@ -209,6 +198,83 @@ function scoreBg(score) {
 
 /* ─────────────── MATCH CARD ─────────────── */
 function MatchCard({ match, userId }) {
+  // Determine the claim action state:
+  // - claim_status = null/undefined → no claim yet → show "Claim this item"
+  // - claim_status = 'pending' | 'verifying' → claim in progress → show "View Claim"
+  // - claim_status = 'confirmed' → resolved → show "Resolved" chip
+  // - claim_status = 'rejected' → rejected → show "Rejected" chip (button gone)
+  const claimStatus = match.claim_status;
+  const isOwner = match.lost_user_id === userId;
+
+  const renderClaimArea = () => {
+    if (!isOwner) return null;
+
+    if (!claimStatus || claimStatus === null) {
+      // No claim yet — go to confirmation page
+      return (
+        <Link
+          href={`/claims/new?match_id=${match.id}`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: '#0d0d0d', color: '#fff',
+            padding: '0.5rem 1rem', borderRadius: 8,
+            fontSize: 12, fontWeight: 500, textDecoration: 'none',
+          }}
+        >
+          Claim this item <IconArrowRight size={11} />
+        </Link>
+      );
+    }
+
+    if (claimStatus === 'pending' || claimStatus === 'verifying') {
+      // Claim submitted — link to claim detail to verify
+      return (
+        <Link
+          href={`/claims`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: '#e8f0fe', color: '#1565c0',
+            border: '0.5px solid #bbdefb',
+            padding: '0.5rem 1rem', borderRadius: 8,
+            fontSize: 12, fontWeight: 500, textDecoration: 'none',
+          }}
+        >
+          View Claim <IconArrowRight size={11} />
+        </Link>
+      );
+    }
+
+    if (claimStatus === 'confirmed') {
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: '#e6f4ea', color: '#1a6b3c',
+          border: '0.5px solid #b7e1cd',
+          padding: '0.5rem 1rem', borderRadius: 8,
+          fontSize: 12, fontWeight: 500,
+        }}>
+          ✓ Item returned
+        </span>
+      );
+    }
+
+    if (claimStatus === 'rejected') {
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: '#fdecea', color: '#b91c1c',
+          border: '0.5px solid #f5c6cb',
+          padding: '0.5rem 1rem', borderRadius: 8,
+          fontSize: 12, fontWeight: 500,
+        }}>
+          ✗ Claim rejected — searching for new matches
+        </span>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div style={{
       background: '#f9f9f8', border: '0.5px solid rgba(0,0,0,0.07)',
@@ -224,7 +290,7 @@ function MatchCard({ match, userId }) {
           {match.score}% match
         </span>
         <Badge label={`${match.confidence} Confidence`} status={match.confidence} />
-        <Badge status={match.status} />
+        <Badge status={match.claim_status || match.status} />
       </div>
 
       {/* Items comparison */}
@@ -268,20 +334,8 @@ function MatchCard({ match, userId }) {
         </div>
       )}
 
-      {/* Claim button */}
-      {match.status === 'pending' && match.lost_user_id === userId && (
-        <Link
-          href={`/claims/new?match_id=${match.id}`}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: '#0d0d0d', color: '#fff', border: 'none',
-            padding: '0.5rem 1rem', borderRadius: 8,
-            fontSize: 12, fontWeight: 500, textDecoration: 'none',
-          }}
-        >
-          Claim this item <IconArrowRight size={11} />
-        </Link>
-      )}
+      {/* Claim area — driven by claim_status */}
+      {renderClaimArea()}
     </div>
   );
 }
@@ -309,6 +363,8 @@ export default function NotificationsPage() {
     setLoading(false);
     await authFetch('/api/notifications', { method: 'PATCH' });
   };
+
+
 
   const unread = notifications.filter(n => !n.is_read).length;
 
@@ -350,15 +406,19 @@ export default function NotificationsPage() {
           ) : (
             <div className="np-grid">
 
-              {/* AI Matches — spans full width if there are matches */}
+              {/* AI Matches */}
               <div style={{ gridColumn: matches.length > 0 ? '1 / -1' : undefined }}>
-                <Section title="AI Match Results" link={null} Icon={IconBot}>
+                <Section title="AI Match Results" Icon={IconBot}>
                   {matches.length === 0 ? (
                     <EmptyState text="No matches found yet. Submit a lost or found item to trigger AI matching." />
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {matches.map(match => (
-                        <MatchCard key={match.id} match={match} userId={user?.id} />
+                        <MatchCard
+                          key={match.id}
+                          match={match}
+                          userId={user?.id}
+                        />
                       ))}
                     </div>
                   )}
@@ -367,7 +427,7 @@ export default function NotificationsPage() {
 
               {/* Notifications */}
               <div style={{ gridColumn: matches.length > 0 ? '1 / -1' : undefined }}>
-                <Section title="System Notifications" link={null} Icon={IconBell}>
+                <Section title="System Notifications" Icon={IconBell}>
                   {notifications.length === 0 ? (
                     <EmptyState text="No notifications yet" />
                   ) : (

@@ -32,16 +32,20 @@ export async function PATCH(req, { params }) {
       await query('UPDATE matches SET status = ? WHERE id = ?', ['resolved', claim.match_id]);
     }
 
-    // ── REJECTED: reset items + re-run AI matching ────────────────────────
+    // ── REJECTED: mark match rejected, reset items, re-run AI matching ───
     if (status === 'rejected') {
       const [match] = await query('SELECT * FROM matches WHERE id = ?', [claim.match_id]);
 
-      // 1. Reset both items back to active
-      await query(`UPDATE items SET status = 'active' WHERE id = ? OR id = ?`,
-        [match.lost_item_id, match.found_item_id]);
+      // 1. Mark the rejected match as 'rejected' — NOT back to pending.
+      //    This is the key fix: notifications page reads match.status,
+      //    so keeping it 'pending' is what caused the button to stay visible.
+      await query(`UPDATE matches SET status = 'rejected' WHERE id = ?`, [match.id]);
 
-      // 2. Reset the match itself back to pending
-      await query(`UPDATE matches SET status = 'pending' WHERE id = ?`, [match.id]);
+      // 2. Reset both items back to active so they can be rematched
+      await query(
+        `UPDATE items SET status = 'active' WHERE id = ? OR id = ?`,
+        [match.lost_item_id, match.found_item_id]
+      );
 
       // 3. Get the lost item to re-match against all active found items
       const [lostItem] = await query('SELECT * FROM items WHERE id = ?', [match.lost_item_id]);
@@ -51,7 +55,7 @@ export async function PATCH(req, { params }) {
         [lostItem.user_id]
       );
 
-      // 4. Notify claimant that the claim was rejected
+      // 4. Notify claimant the claim was rejected
       await query(
         `INSERT INTO notifications (id, user_id, match_id, type, message)
          VALUES (?, ?, ?, 'claim_rejected', ?)`,
@@ -59,14 +63,13 @@ export async function PATCH(req, { params }) {
           `Your claim for "${lostItem.name}" was rejected. We'll keep searching for matches.`]
       );
 
-      // 5. Re-run AI matching against all other active found items
+      // 5. Re-run AI matching — each new match gets its OWN fresh record
       for (const candidate of candidates) {
-        // Skip the same found item that was just rejected
         if (candidate.id === match.found_item_id) continue;
 
-        // Skip if a match already exists between these two
+        // Skip if a non-rejected match already exists between these two
         const existing = await query(
-          `SELECT id FROM matches WHERE lost_item_id = ? AND found_item_id = ?`,
+          `SELECT id FROM matches WHERE lost_item_id = ? AND found_item_id = ? AND status != 'rejected'`,
           [lostItem.id, candidate.id]
         );
         if (existing.length > 0) continue;
@@ -83,12 +86,11 @@ export async function PATCH(req, { params }) {
         if (aiResult?.score >= 50) {
           const matchId = uuid();
           await query(
-            `INSERT INTO matches (id, lost_item_id, found_item_id, score, confidence, explanation)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO matches (id, lost_item_id, found_item_id, score, confidence, explanation, status)
+             VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
             [matchId, lostItem.id, candidate.id, aiResult.score, aiResult.confidence, aiResult.explanation]
           );
 
-          // Notify lost item owner
           await query(
             `INSERT INTO notifications (id, user_id, match_id, type, message)
              VALUES (?, ?, ?, 'match_found', ?)`,
@@ -96,7 +98,6 @@ export async function PATCH(req, { params }) {
               `New match found for your lost item: ${lostItem.name}`]
           );
 
-          // Notify found item owner
           await query(
             `INSERT INTO notifications (id, user_id, match_id, type, message)
              VALUES (?, ?, ?, 'match_found', ?)`,
