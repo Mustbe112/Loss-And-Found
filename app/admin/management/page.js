@@ -33,8 +33,33 @@ function StatusBadge({ status }) {
 }
 
 // ─── Shared: Item Info Form ───────────────────────────────────────────────────
-function ItemInfoForm({ form, setForm }) {
+function ItemInfoForm({ form, setForm, authFetch }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return setUploadError('Please select an image file.');
+    if (file.size > 5 * 1024 * 1024) return setUploadError('Image must be under 5MB.');
+    setUploadError('');
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res  = await authFetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+      set('image_url', data.url);
+    } catch (err) {
+      setUploadError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <>
       <div style={twoCol}>
@@ -66,13 +91,46 @@ function ItemInfoForm({ form, setForm }) {
         <label style={labelStyle}>Description</label>
         <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Color, brand, condition, any details..." rows={3} style={{ ...inputStyle, resize: 'vertical', borderRadius: '14px' }} />
       </div>
+
+      {/* Photo Upload */}
+      <div style={fieldWrap}>
+        <label style={labelStyle}>Photo (optional)</label>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+        {form.image_url ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 1rem', background: '#fff', border: '1px solid #e8e4de', borderRadius: '30px' }}>
+            <img src={form.image_url} alt="preview" style={{ width: 36, height: 36, borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.8rem', color: '#4a8050', flex: 1 }}>Photo uploaded ✓</span>
+            <button
+              onClick={() => { set('image_url', ''); if (fileRef.current) fileRef.current.value = ''; }}
+              style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem', padding: 0 }}
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.6rem',
+              background: '#fff', border: '1px dashed #ccc8c0', borderRadius: '30px',
+              padding: '0.6rem 1rem', cursor: uploading ? 'not-allowed' : 'pointer',
+              color: '#888', fontSize: '0.82rem', fontFamily: "'DM Sans', sans-serif", width: '100%',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            {uploading ? 'Uploading...' : 'Upload a photo'}
+          </button>
+        )}
+        {uploadError && <span style={{ color: '#a04040', fontSize: '0.76rem', marginTop: '0.25rem' }}>{uploadError}</span>}
+      </div>
     </>
   );
 }
 
 // ─── Have It — Create New Item ────────────────────────────────────────────────
 function CreatePostedForm({ userId, userName, authFetch, onSuccess, onCancel }) {
-  const [form, setForm] = useState({ name: '', category: '', location: '', date_occurred: '', description: '' });
+  const [form, setForm] = useState({ name: '', category: '', location: '', date_occurred: '', description: '', image_url: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
 
@@ -97,7 +155,7 @@ function CreatePostedForm({ userId, userName, authFetch, onSuccess, onCancel }) 
         <button onClick={onCancel} style={btnSecondary}>Cancel</button>
       </div>
       {error && <div style={errorBox}>{error}</div>}
-      <ItemInfoForm form={form} setForm={setForm} />
+      <ItemInfoForm form={form} setForm={setForm} authFetch={authFetch} />
       <button onClick={handleSubmit} style={btnPrimary} disabled={saving}>
         {saving ? 'Saving...' : 'Save & Check In to Office'}
       </button>
@@ -296,7 +354,7 @@ function HaveItFlow({ authFetch, onDone }) {
 // ─── No Account Flow ──────────────────────────────────────────────────────────
 function NoAccountFlow({ authFetch, onDone }) {
   const [finder, setFinder] = useState({ name: '', email: '', phone: '' });
-  const [form, setForm]     = useState({ name: '', category: '', location: '', date_occurred: '', description: '' });
+  const [form, setForm]     = useState({ name: '', category: '', location: '', date_occurred: '', description: '', image_url: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
 
@@ -340,7 +398,7 @@ function NoAccountFlow({ authFetch, onDone }) {
       <p style={stepLabel}>Step 2 — Item Information</p>
       <div style={subCard}>
         {error && <div style={errorBox}>{error}</div>}
-        <ItemInfoForm form={form} setForm={setForm} />
+        <ItemInfoForm form={form} setForm={setForm} authFetch={authFetch} />
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
           <button onClick={handleSubmit} style={btnPrimary} disabled={saving}>
             {saving ? 'Saving...' : 'Save to Item Registry'}

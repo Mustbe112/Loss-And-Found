@@ -43,15 +43,15 @@ export async function POST(req) {
 
     // ── 2. User has account but hasn't posted the found item yet ───────────
     if (action === 'checkin_new') {
-      const { user_id, name, category, location, date_occurred, description } = body;
+      const { user_id, name, category, location, date_occurred, description, image_url } = body;
       if (!user_id || !name || !category || !location)
         return Response.json({ error: 'user_id, name, category, location are required' }, { status: 400 });
 
       const newId = uuid();
       await query(
-        `INSERT INTO items (id, user_id, type, name, category, location, date_occurred, description, status)
-         VALUES (?, ?, 'found', ?, ?, ?, ?, ?, 'at_office')`,
-        [newId, user_id, name, category, location, date_occurred || null, description || null]
+        `INSERT INTO items (id, user_id, type, name, category, location, date_occurred, description, image_url, status)
+         VALUES (?, ?, 'found', ?, ?, ?, ?, ?, ?, 'at_office')`,
+        [newId, user_id, name, category, location, date_occurred || null, description || null, image_url || null]
       );
 
       return Response.json({ success: true, message: 'New found item created and checked in.', item_id: newId });
@@ -59,7 +59,7 @@ export async function POST(req) {
 
     // ── 3. Finder has NO account — admin fills everything ──────────────────
     if (action === 'walkin_no_account') {
-      const { finder_name, finder_email, finder_phone, name, category, location, date_occurred, description } = body;
+      const { finder_name, finder_email, finder_phone, name, category, location, date_occurred, description, image_url } = body;
       if (!finder_name || !name || !category || !location)
         return Response.json({ error: 'finder_name, name, category, location are required' }, { status: 400 });
 
@@ -67,10 +67,11 @@ export async function POST(req) {
       // We use the admin's own user id as owner since there's no real account
       const newId = uuid();
       await query(
-        `INSERT INTO items (id, user_id, type, name, category, location, date_occurred, description, status)
-         VALUES (?, ?, 'found', ?, ?, ?, ?, ?, 'at_office')`,
+        `INSERT INTO items (id, user_id, type, name, category, location, date_occurred, description, image_url, status)
+         VALUES (?, ?, 'found', ?, ?, ?, ?, ?, ?, 'at_office')`,
         [newId, decoded.id, name, category, location, date_occurred || null,
-         `[Walk-in] Finder: ${finder_name}${finder_email ? ` (${finder_email})` : ''}${finder_phone ? ` Tel: ${finder_phone}` : ''}. ${description || ''}`.trim()]
+         `[Walk-in] Finder: ${finder_name}${finder_email ? ` (${finder_email})` : ''}${finder_phone ? ` Tel: ${finder_phone}` : ''}. ${description || ''}`.trim(),
+         image_url || null]
       );
 
       return Response.json({ success: true, message: 'Walk-in item saved to registry.', item_id: newId });
