@@ -18,6 +18,7 @@ export default function ReportLostPage() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -29,20 +30,23 @@ export default function ReportLostPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setSubmitted(true);
+
     const res = await authFetch('/api/items', {
       method: 'POST',
       body: JSON.stringify({ ...form, type: 'lost', image_base64: image }),
     });
     const data = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(data.error);
+    if (!res.ok) {
+      setSubmitted(false);
+      return setError(data.error);
+    }
     await authFetch('/api/matches', {
       method: 'POST',
       body: JSON.stringify({ item_id: data.item.id }),
     });
-    router.push('/dashboard');
+    setTimeout(() => router.push('/dashboard'), 2600);
   };
 
   return (
@@ -174,6 +178,51 @@ export default function ReportLostPage() {
           .rfl-btn-cancel { flex: unset; width: 100%; text-align: center; padding: 11px; }
           .rfl-btn-submit { padding: 13px; font-size: 13px; }
         }
+
+/* SUCCESS OVERLAY */
+        .rfl-overlay {
+          position: fixed; inset: 0; background: #f5f4f0;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          z-index: 100; animation: rfl-fade-in 0.3s ease;
+        }
+        @keyframes rfl-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        .rfl-check-wrap {
+          width: 72px; height: 72px; border-radius: 50%;
+          border: 1.5px solid #111; display: flex; align-items: center; justify-content: center;
+          animation: rfl-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+        }
+        @keyframes rfl-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .rfl-check-svg { width: 28px; height: 28px; }
+        .rfl-check-path {
+          stroke: #111; stroke-width: 2; fill: none;
+          stroke-dasharray: 40; stroke-dashoffset: 40;
+          stroke-linecap: round; stroke-linejoin: round;
+          animation: rfl-draw 0.45s ease 0.55s forwards;
+        }
+        @keyframes rfl-draw { to { stroke-dashoffset: 0; } }
+
+        .rfl-success-title {
+          font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+          color: #111; margin-top: 1.5rem; animation: rfl-slide-up 0.4s ease 0.7s both;
+        }
+        .rfl-success-sub {
+          font-size: 13px; color: #888; font-weight: 300; margin-top: 6px;
+          animation: rfl-slide-up 0.4s ease 0.85s both;
+        }
+        @keyframes rfl-slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .rfl-success-bar-track {
+          width: 120px; height: 1.5px; background: #ddd; margin-top: 2rem; border-radius: 1px;
+          overflow: hidden; opacity: 0; animation: rfl-bar-appear 0.3s ease 1s forwards;
+        }
+        .rfl-success-bar-fill {
+          height: 100%; width: 0; background: #111;
+          animation: rfl-fill 1.4s cubic-bezier(0.4, 0, 0.6, 1) 1.1s forwards;
+        }
+        @keyframes rfl-bar-appear { to { opacity: 1; } }
+        @keyframes rfl-fill { from { width: 0; } to { width: 100%; } }
       `}</style>
 
       <div className="rfl-page">
@@ -250,6 +299,19 @@ export default function ReportLostPage() {
               </button>
             </div>
           </form>
+
+          {submitted && (
+            <div className="rfl-overlay">
+              <div className="rfl-check-wrap">
+                <svg className="rfl-check-svg" viewBox="0 0 28 28">
+                  <path className="rfl-check-path" d="M6 14.5l5.5 5.5 10.5-11" />
+                </svg>
+              </div>
+              <p className="rfl-success-title">Report submitted.</p>
+              <p className="rfl-success-sub">We're scanning for matches now.</p>
+              <div className="rfl-success-bar-track"><div className="rfl-success-bar-fill" /></div>
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>

@@ -8,12 +8,38 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState(''); // 'email' | 'password' | 'general'
   const [loading, setLoading] = useState(false);
+
+  const getErrorMessage = (serverError, status) => {
+    if (!serverError) return { type: 'general', message: 'Something went wrong. Please try again.' };
+
+    const msg = serverError.toLowerCase();
+
+    if (msg.includes('not found') || msg.includes('no user') || msg.includes('email')) {
+      return { type: 'email', message: "We couldn't find an account with that email address." };
+    }
+    if (msg.includes('password') || msg.includes('incorrect') || msg.includes('invalid') || msg.includes('wrong')) {
+      return { type: 'password', message: 'Incorrect password. Please try again.' };
+    }
+    if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('attempts')) {
+      return { type: 'general', message: 'Too many failed attempts. Please wait a moment before trying again.' };
+    }
+    if (status === 401) {
+      return { type: 'password', message: 'Your email or password is incorrect.' };
+    }
+    if (status === 404) {
+      return { type: 'email', message: "We couldn't find an account with that email address." };
+    }
+
+    return { type: 'general', message: 'Something went wrong. Please try again.' };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setErrorType('');
 
     const res = await fetch('/api/auth/login', {
       method: 'POST',
@@ -24,7 +50,13 @@ export default function LoginPage() {
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) return setError(data.error);
+    if (!res.ok) {
+      const { type, message } = getErrorMessage(data.error, res.status);
+      setErrorType(type);
+      setError(message);
+      return;
+    }
+
     login(data.token, data.user);
   };
 
@@ -43,7 +75,6 @@ export default function LoginPage() {
           background: #fff;
         }
 
-        /* Left panel */
         .left-panel {
           background: #0d0d0d;
           display: flex;
@@ -81,13 +112,9 @@ export default function LoginPage() {
           text-transform: uppercase;
           z-index: 1;
         }
-        .brand-star {
-          width: 18px; height: 18px;
-        }
+        .brand-star { width: 18px; height: 18px; }
 
-        .left-content {
-          z-index: 1;
-        }
+        .left-content { z-index: 1; }
         .left-content h2 {
           font-family: 'Playfair Display', serif;
           font-size: 2.8rem;
@@ -95,10 +122,7 @@ export default function LoginPage() {
           line-height: 1.15;
           margin-bottom: 1.2rem;
         }
-        .left-content h2 em {
-          font-style: normal;
-          color: #d4d4d4;
-        }
+        .left-content h2 em { font-style: normal; color: #d4d4d4; }
         .left-content p {
           color: #888;
           font-size: 0.9rem;
@@ -112,11 +136,7 @@ export default function LoginPage() {
           gap: 0.5rem;
           z-index: 1;
         }
-        .dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #444;
-        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
         .dot.active { background: #fff; }
         .left-footer-text {
           color: #555;
@@ -125,7 +145,6 @@ export default function LoginPage() {
           margin-left: 0.5rem;
         }
 
-        /* Right panel */
         .right-panel {
           display: flex;
           align-items: center;
@@ -134,10 +153,7 @@ export default function LoginPage() {
           background: #fafafa;
         }
 
-        .form-card {
-          width: 100%;
-          max-width: 400px;
-        }
+        .form-card { width: 100%; max-width: 400px; }
 
         .form-card h1 {
           font-family: 'Playfair Display', serif;
@@ -152,18 +168,44 @@ export default function LoginPage() {
         }
 
         .error-box {
-          background: #fff5f5;
-          border-left: 3px solid #cc3333;
-          color: #cc3333;
-          padding: 0.75rem 1rem;
-          border-radius: 4px;
-          font-size: 0.85rem;
+          display: flex;
+          align-items: flex-start;
+          gap: 0.6rem;
+          background: #fff8f8;
+          border: 1px solid #fcd0d0;
+          border-radius: 8px;
+          padding: 0.85rem 1rem;
           margin-bottom: 1.5rem;
+          animation: shake 0.4s ease;
+        }
+        .error-icon {
+          flex-shrink: 0;
+          margin-top: 1px;
+          color: #c0392b;
+        }
+        .error-text { flex: 1; }
+        .error-title {
+          font-size: 0.82rem;
+          font-weight: 500;
+          color: #c0392b;
+          margin-bottom: 2px;
+        }
+        .error-desc {
+          font-size: 0.8rem;
+          color: #a94040;
+          line-height: 1.5;
         }
 
-        .field {
-          margin-bottom: 1.3rem;
+        @keyframes shake {
+          0%   { transform: translateX(0); }
+          20%  { transform: translateX(-5px); }
+          40%  { transform: translateX(5px); }
+          60%  { transform: translateX(-3px); }
+          80%  { transform: translateX(3px); }
+          100% { transform: translateX(0); }
         }
+
+        .field { margin-bottom: 1.3rem; }
         .field label {
           display: block;
           font-size: 0.75rem;
@@ -183,10 +225,18 @@ export default function LoginPage() {
           font-family: 'DM Sans', sans-serif;
           color: #0d0d0d;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
         .field input:focus { border-color: #0d0d0d; }
         .field input::placeholder { color: #bbb; }
+        .field input.input-error {
+          border-color: #e57373;
+          background: #fffafa;
+        }
+        .field input.input-error:focus {
+          border-color: #c0392b;
+          box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+        }
 
         .submit-btn {
           width: 100%;
@@ -242,7 +292,6 @@ export default function LoginPage() {
       `}</style>
 
       <div className="page">
-        {/* Left decorative panel */}
         <div className="left-panel">
           <div className="brand">
             <svg className="brand-star" viewBox="0 0 24 24" fill="none">
@@ -250,12 +299,10 @@ export default function LoginPage() {
             </svg>
             Lost &amp; Found
           </div>
-
           <div className="left-content">
             <h2>Find what<br/><em>matters most.</em></h2>
             <p>A trusted platform connecting people with their lost belongings — fast, simple, and community-driven.</p>
           </div>
-
           <div className="left-footer">
             <div className="dot active"></div>
             <div className="dot"></div>
@@ -264,13 +311,27 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right form panel */}
         <div className="right-panel">
           <div className="form-card">
             <h1>Welcome back</h1>
             <p className="sub">Sign in to your account</p>
 
-            {error && <div className="error-box">{error}</div>}
+            {error && (
+              <div className="error-box" key={error}>
+                <svg className="error-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#c0392b" strokeWidth="1.5"/>
+                  <path d="M12 7v5.5M12 16.5v.5" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <div className="error-text">
+                  <div className="error-title">
+                    {errorType === 'email' && 'Account not found'}
+                    {errorType === 'password' && 'Incorrect password'}
+                    {errorType === 'general' && 'Sign in failed'}
+                  </div>
+                  <div className="error-desc">{error}</div>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="field">
@@ -279,7 +340,8 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  onChange={e => { setForm({ ...form, email: e.target.value }); setError(''); setErrorType(''); }}
+                  className={errorType === 'email' ? 'input-error' : ''}
                   required
                 />
               </div>
@@ -290,7 +352,8 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  onChange={e => { setForm({ ...form, password: e.target.value }); setError(''); setErrorType(''); }}
+                  className={errorType === 'password' ? 'input-error' : ''}
                   required
                 />
               </div>

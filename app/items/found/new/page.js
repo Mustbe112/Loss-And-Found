@@ -18,6 +18,7 @@ export default function ReportFoundPage() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -29,20 +30,23 @@ export default function ReportFoundPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setSuccess(true);
+
     const res = await authFetch('/api/items', {
       method: 'POST',
       body: JSON.stringify({ ...form, type: 'found', image_base64: image }),
     });
     const data = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(data.error);
+    if (!res.ok) {
+      setSuccess(false);
+      return setError(data.error);
+    }
     await authFetch('/api/matches', {
       method: 'POST',
       body: JSON.stringify({ item_id: data.item.id }),
     });
-    router.push('/dashboard');
+    setTimeout(() => router.push('/dashboard'), 2600);
   };
 
   return (
@@ -134,7 +138,52 @@ export default function ReportFoundPage() {
         .rfi-btn-submit:hover:not(:disabled) { background: #333; }
         .rfi-btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        /* ── MOBILE ── */
+        /* SUCCESS OVERLAY */
+        .rfi-overlay {
+          position: fixed; inset: 0; background: #f5f4f0;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          z-index: 100; animation: rfi-fade-in 0.3s ease;
+        }
+        @keyframes rfi-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        .rfi-check-wrap {
+          width: 72px; height: 72px; border-radius: 50%;
+          border: 1.5px solid #111; display: flex; align-items: center; justify-content: center;
+          animation: rfi-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+        }
+        @keyframes rfi-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .rfi-check-svg { width: 28px; height: 28px; }
+        .rfi-check-path {
+          stroke: #111; stroke-width: 2; fill: none;
+          stroke-dasharray: 40; stroke-dashoffset: 40;
+          stroke-linecap: round; stroke-linejoin: round;
+          animation: rfi-draw 0.45s ease 0.55s forwards;
+        }
+        @keyframes rfi-draw { to { stroke-dashoffset: 0; } }
+
+        .rfi-success-title {
+          font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+          color: #111; margin-top: 1.5rem; animation: rfi-slide-up 0.4s ease 0.7s both;
+        }
+        .rfi-success-sub {
+          font-size: 13px; color: #888; font-weight: 300; margin-top: 6px;
+          animation: rfi-slide-up 0.4s ease 0.85s both;
+        }
+        @keyframes rfi-slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .rfi-success-bar-track {
+          width: 120px; height: 1.5px; background: #ddd; margin-top: 2rem; border-radius: 1px;
+          overflow: hidden; opacity: 0; animation: rfi-bar-appear 0.3s ease 1s forwards;
+        }
+        .rfi-success-bar-fill {
+          height: 100%; width: 0; background: #111;
+          animation: rfi-fill 1.4s cubic-bezier(0.4, 0, 0.6, 1) 1.1s forwards;
+        }
+        @keyframes rfi-bar-appear { to { opacity: 1; } }
+        @keyframes rfi-fill { from { width: 0; } to { width: 100%; } }
+
+
         @media (max-width: 600px) {
           /* Nav: hide text links, keep only sign out */
           .rfi-nav { padding: 0 1.25rem; }
@@ -177,6 +226,18 @@ export default function ReportFoundPage() {
       `}</style>
 
       <div className="rfi-page">
+        {success && (
+          <div className="rfi-overlay">
+            <div className="rfi-check-wrap">
+              <svg className="rfi-check-svg" viewBox="0 0 28 28">
+                <path className="rfi-check-path" d="M6 14.5l5.5 5.5 10.5-11" />
+              </svg>
+            </div>
+            <p className="rfi-success-title">Report submitted.</p>
+            <p className="rfi-success-sub">We're matching it with lost reports now.</p>
+            <div className="rfi-success-bar-track"><div className="rfi-success-bar-fill" /></div>
+          </div>
+        )}
         <nav className="rfi-nav">
           <div className="rfi-nav-logo" onClick={() => router.push('/')}>
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

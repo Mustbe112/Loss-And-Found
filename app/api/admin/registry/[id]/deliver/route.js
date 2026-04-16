@@ -16,15 +16,12 @@ export async function GET(req, { params }) {
     const email = searchParams.get('email')?.trim();
     if (!email) return Response.json({ user: null, claim_id: null });
 
-    // Find user by email
     const [user] = await query(
       `SELECT id, name, email FROM users WHERE email = ?`,
       [email]
     );
-
     if (!user) return Response.json({ user: null, claim_id: null });
 
-    // Check if this user has a claim linked to this found item
     const [claim] = await query(
       `SELECT cl.id AS claim_id
        FROM claims cl
@@ -54,45 +51,93 @@ export async function POST(req, { params }) {
     if (!decoded) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (decoded.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { full_name, id_number, phone, email, notes, claim_id } = await req.json();
-    if (!full_name || !id_number || !phone)
-      return Response.json({ error: 'full_name, id_number and phone are required' }, { status: 400 });
+    const { claim_id, full_name, id_number, phone, email, signature, notes } = await req.json();
 
-    // Verify item exists and is at_office
-    const [item] = await query(
-      `SELECT id, name, status FROM items WHERE id = ? AND type = 'found'`,
+    // ✅ claim_id is now optional
+    if (!full_name || !id_number || !phone) {
+      return Response.json(
+        { error: 'full_name, id_number and phone are required.' },
+        { status: 400 }
+      );
+    }
+
+    // Verify found item exists
+    const [foundItem] = await query(
+      `SELECT id, name, category, status FROM items WHERE id = ? AND type = 'found'`,
       [id]
     );
-    if (!item) return Response.json({ error: 'Item not found' }, { status: 404 });
-    if (item.status !== 'at_office')
-      return Response.json({ error: 'Item is not currently at the office' }, { status: 400 });
+    if (!foundItem) return Response.json({ error: 'Item not found' }, { status: 404 });
 
-    // Save delivery record — claim_id is linked if found, NULL otherwise
     const deliveryId = uuid();
+
+    // 1. Store delivery record
     await query(
       `INSERT INTO delivery_records
-         (id, item_id, claim_id, full_name, id_number, phone, email, notes, delivered_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [deliveryId, id, claim_id || null, full_name, id_number, phone, email || null, notes || null, decoded.id]
+         (id, item_id, claim_id, full_name, id_number, phone, email, signature, notes, delivered_at, delivered_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
+      [deliveryId, id, claim_id || null, full_name, id_number, phone,
+       email ?? null, signature ?? null, notes ?? null, decoded.id]
     );
 
-    // Mark item as resolved
+    // 2. Mark found item as resolved
     await query(
       `UPDATE items SET status = 'resolved', updated_at = NOW() WHERE id = ?`,
       [id]
     );
 
-    // If there's a claim, mark it approved too
+    // 3. Mark claim as completed if provided
     if (claim_id) {
       await query(
-        `UPDATE claims SET status = 'approved', updated_at = NOW() WHERE id = ?`,
+        `UPDATE claims SET status = 'completed', updated_at = NOW() WHERE id = ?`,
         [claim_id]
       );
     }
 
+    // ✅ 4. Resolve the matching lost item by email
+    if (email) {
+      const [recipient] = await query(
+        `SELECT id FROM users WHERE email = ?`,
+        [email]
+      );
+
+      if (recipient) {
+        // Priority 1: resolve via matches table
+        const [matchedLost] = await query(
+          `SELECT i.id FROM matches m
+           JOIN items i ON i.id = m.lost_item_id
+           WHERE m.found_item_id = ?
+             AND i.user_id = ?
+             AND i.type = 'lost'
+             AND i.status != 'resolved'
+           LIMIT 1`,
+          [id, recipient.id]
+        );
+
+        if (matchedLost) {
+          await query(
+            `UPDATE items SET status = 'resolved', updated_at = NOW() WHERE id = ?`,
+            [matchedLost.id]
+          );
+        } else {
+          // Priority 2: same category, most recent lost item
+          await query(
+            `UPDATE items
+             SET status = 'resolved', updated_at = NOW()
+             WHERE type = 'lost'
+               AND user_id = ?
+               AND category = ?
+               AND status NOT IN ('resolved', 'closed')
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            [recipient.id, foundItem.category]
+          );
+        }
+      }
+    }
+
     return Response.json({ success: true, delivery_id: deliveryId });
   } catch (err) {
-    console.error('registry deliver POST error:', err);
+    console.error('deliver POST error:', err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }

@@ -142,7 +142,11 @@ export default function MyLostItemsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    fetchItems();
+    const interval = setInterval(fetchItems, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchItems = async () => {
     const res = await authFetch('/api/items?type=lost');

@@ -7,12 +7,12 @@ import Link from 'next/link';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'ME';
 
-  // Close menu on route change or resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768) setMenuOpen(false);
@@ -21,7 +21,6 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Prevent body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -29,8 +28,67 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const handleLogout = () => {
+    setLoggingOut(true);
+    setTimeout(() => {
+      logout();
+    }, 600);
+  };
+
   return (
     <>
+      {/* Logout overlay */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '12px',
+        opacity: loggingOut ? 1 : 0,
+        pointerEvents: loggingOut ? 'all' : 'none',
+        transition: 'opacity 0.35s ease',
+      }}>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ animation: 'navbar-spin 0.75s linear infinite' }}
+        >
+          <circle cx="10" cy="10" r="8" stroke="#e5e5e5" strokeWidth="2" />
+          <path
+            d="M10 2a8 8 0 0 1 8 8"
+            stroke="#0d0d0d"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span style={{
+          fontSize: 13,
+          color: '#999',
+          fontFamily: "'DM Sans', -apple-system, sans-serif",
+          letterSpacing: '0.01em',
+        }}>
+          Signing out…
+        </span>
+      </div>
+
+      <style>{`
+        @keyframes navbar-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+          .desktop-menu { display: none !important; }
+          .hamburger-btn { display: flex !important; }
+        }
+      `}</style>
+
       <nav style={{
         position: 'sticky',
         top: 0,
@@ -94,7 +152,7 @@ export default function Navbar() {
               >
                 {initials}
               </Link>
-              <button onClick={logout} style={logoutBtnStyle}>
+              <button onClick={handleLogout} style={logoutBtnStyle}>
                 Logout
               </button>
             </>
@@ -180,7 +238,6 @@ export default function Navbar() {
       >
         {user ? (
           <>
-            {/* User info */}
             <Link href="/profile" onClick={closeMenu} style={{
               display: 'flex',
               alignItems: 'center',
@@ -224,7 +281,7 @@ export default function Navbar() {
 
             <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
               <button
-                onClick={() => { logout(); closeMenu(); }}
+                onClick={() => { closeMenu(); handleLogout(); }}
                 style={{
                   ...logoutBtnStyle,
                   width: '100%',
@@ -258,13 +315,6 @@ export default function Navbar() {
           }}
         />
       )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .desktop-menu { display: none !important; }
-          .hamburger-btn { display: flex !important; }
-        }
-      `}</style>
     </>
   );
 }

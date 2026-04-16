@@ -8,35 +8,77 @@ export default function RegisterPage() {
   const { login } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState(''); // 'email' | 'password' | 'confirm' | 'general'
   const [loading, setLoading] = useState(false);
+
+  const clearError = (field) => {
+    if (errorType === field) { setError(''); setErrorType(''); }
+  };
+
+  const getErrorMessage = (serverError, status) => {
+    if (!serverError) return { type: 'general', message: 'Something went wrong. Please try again.' };
+
+    const msg = serverError.toLowerCase();
+
+    if (msg.includes('already') || msg.includes('exists') || msg.includes('taken') || msg.includes('duplicate') || status === 409) {
+      return { type: 'email', message: 'An account with this email already exists. Try signing in instead.' };
+    }
+    if (msg.includes('email') && (msg.includes('invalid') || msg.includes('format'))) {
+      return { type: 'email', message: 'Please enter a valid email address.' };
+    }
+    if (msg.includes('password')) {
+      return { type: 'password', message: 'Password does not meet requirements. Use at least 6 characters.' };
+    }
+    if (status === 400) {
+      return { type: 'general', message: 'Please check your details and try again.' };
+    }
+
+    return { type: 'general', message: 'Something went wrong. Please try again.' };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorType('');
 
-    if (form.password !== form.confirm)
-      return setError('Passwords do not match');
+    if (form.password !== form.confirm) {
+      setErrorType('confirm');
+      setError('Those passwords don\'t match. Please try again.');
+      return;
+    }
 
-    if (form.password.length < 6)
-      return setError('Password must be at least 6 characters');
+    if (form.password.length < 6) {
+      setErrorType('password');
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
 
     setLoading(true);
 
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-      }),
+      body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
     });
 
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) return setError(data.error);
+    if (!res.ok) {
+      const { type, message } = getErrorMessage(data.error, res.status);
+      setErrorType(type);
+      setError(message);
+      return;
+    }
+
     login(data.token, data.user);
+  };
+
+  const errorTitles = {
+    email: 'Email unavailable',
+    password: 'Weak password',
+    confirm: 'Passwords don\'t match',
+    general: 'Registration failed',
   };
 
   return (
@@ -54,7 +96,6 @@ export default function RegisterPage() {
           background: #fff;
         }
 
-        /* Left panel */
         .left-panel {
           background: #0d0d0d;
           display: flex;
@@ -93,9 +134,7 @@ export default function RegisterPage() {
           z-index: 1;
         }
 
-        .left-content {
-          z-index: 1;
-        }
+        .left-content { z-index: 1; }
         .left-content h2 {
           font-family: 'Playfair Display', serif;
           font-size: 2.8rem;
@@ -103,10 +142,7 @@ export default function RegisterPage() {
           line-height: 1.15;
           margin-bottom: 1.2rem;
         }
-        .left-content h2 em {
-          font-style: normal;
-          color: #d4d4d4;
-        }
+        .left-content h2 em { font-style: normal; color: #d4d4d4; }
         .left-content p {
           color: #888;
           font-size: 0.9rem;
@@ -114,28 +150,11 @@ export default function RegisterPage() {
           max-width: 280px;
         }
 
-        .features {
-          z-index: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 0.85rem;
-        }
-        .feature-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-        .feature-check {
-          width: 18px; height: 18px;
-          flex-shrink: 0;
-        }
-        .feature-item span {
-          color: #777;
-          font-size: 0.82rem;
-          letter-spacing: 0.02em;
-        }
+        .features { z-index: 1; display: flex; flex-direction: column; gap: 0.85rem; }
+        .feature-item { display: flex; align-items: center; gap: 0.75rem; }
+        .feature-check { width: 18px; height: 18px; flex-shrink: 0; }
+        .feature-item span { color: #777; font-size: 0.82rem; letter-spacing: 0.02em; }
 
-        /* Right panel */
         .right-panel {
           display: flex;
           align-items: center;
@@ -144,10 +163,7 @@ export default function RegisterPage() {
           background: #fafafa;
         }
 
-        .form-card {
-          width: 100%;
-          max-width: 400px;
-        }
+        .form-card { width: 100%; max-width: 400px; }
 
         .form-card h1 {
           font-family: 'Playfair Display', serif;
@@ -162,18 +178,49 @@ export default function RegisterPage() {
         }
 
         .error-box {
-          background: #fff5f5;
-          border-left: 3px solid #cc3333;
-          color: #cc3333;
-          padding: 0.75rem 1rem;
-          border-radius: 4px;
-          font-size: 0.85rem;
+          display: flex;
+          align-items: flex-start;
+          gap: 0.6rem;
+          background: #fff8f8;
+          border: 1px solid #fcd0d0;
+          border-radius: 8px;
+          padding: 0.85rem 1rem;
           margin-bottom: 1.5rem;
+          animation: shake 0.4s ease;
+        }
+        .error-icon { flex-shrink: 0; margin-top: 1px; }
+        .error-text { flex: 1; }
+        .error-title {
+          font-size: 0.82rem;
+          font-weight: 500;
+          color: #c0392b;
+          margin-bottom: 2px;
+        }
+        .error-desc { font-size: 0.8rem; color: #a94040; line-height: 1.5; }
+
+        .error-action {
+          display: inline-block;
+          margin-top: 4px;
+          font-size: 0.78rem;
+          color: #c0392b;
+          text-decoration: underline;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0;
+          font-family: 'DM Sans', sans-serif;
         }
 
-        .field {
-          margin-bottom: 1.1rem;
+        @keyframes shake {
+          0%   { transform: translateX(0); }
+          20%  { transform: translateX(-5px); }
+          40%  { transform: translateX(5px); }
+          60%  { transform: translateX(-3px); }
+          80%  { transform: translateX(3px); }
+          100% { transform: translateX(0); }
         }
+
+        .field { margin-bottom: 1.1rem; }
         .field label {
           display: block;
           font-size: 0.75rem;
@@ -193,10 +240,18 @@ export default function RegisterPage() {
           font-family: 'DM Sans', sans-serif;
           color: #0d0d0d;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
         .field input:focus { border-color: #0d0d0d; }
         .field input::placeholder { color: #bbb; }
+        .field input.input-error {
+          border-color: #e57373;
+          background: #fffafa;
+        }
+        .field input.input-error:focus {
+          border-color: #c0392b;
+          box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+        }
 
         .field-row {
           display: grid;
@@ -243,10 +298,7 @@ export default function RegisterPage() {
           margin-top: 1rem;
           line-height: 1.5;
         }
-        .terms a {
-          color: #555;
-          text-decoration: underline;
-        }
+        .terms a { color: #555; text-decoration: underline; }
 
         .form-footer {
           text-align: center;
@@ -273,7 +325,6 @@ export default function RegisterPage() {
       `}</style>
 
       <div className="page">
-        {/* Left decorative panel */}
         <div className="left-panel">
           <div className="brand">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -281,12 +332,10 @@ export default function RegisterPage() {
             </svg>
             Lost &amp; Found
           </div>
-
           <div className="left-content">
             <h2>Join the<br/><em>community.</em></h2>
             <p>Report lost items, discover found ones, and help reunite belongings with their rightful owners.</p>
           </div>
-
           <div className="features">
             {[
               'Post lost or found items instantly',
@@ -304,13 +353,26 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Right form panel */}
         <div className="right-panel">
           <div className="form-card">
             <h1>Create account</h1>
             <p className="sub">Join the Lost &amp; Found community</p>
 
-            {error && <div className="error-box">{error}</div>}
+            {error && (
+              <div className="error-box" key={error}>
+                <svg className="error-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#c0392b" strokeWidth="1.5"/>
+                  <path d="M12 7v5.5M12 16.5v.5" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <div className="error-text">
+                  <div className="error-title">{errorTitles[errorType] || 'Error'}</div>
+                  <div className="error-desc">{error}</div>
+                  {errorType === 'email' && (
+                    <Link href="/login" className="error-action">Sign in instead →</Link>
+                  )}
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="field">
@@ -330,7 +392,8 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="you@example.com"
                   value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  onChange={e => { setForm({ ...form, email: e.target.value }); clearError('email'); }}
+                  className={errorType === 'email' ? 'input-error' : ''}
                   required
                 />
               </div>
@@ -342,18 +405,19 @@ export default function RegisterPage() {
                     type="password"
                     placeholder="••••••••"
                     value={form.password}
-                    onChange={e => setForm({ ...form, password: e.target.value })}
+                    onChange={e => { setForm({ ...form, password: e.target.value }); clearError('password'); }}
+                    className={errorType === 'password' ? 'input-error' : ''}
                     required
                   />
                 </div>
-
                 <div className="field">
                   <label>Confirm</label>
                   <input
                     type="password"
                     placeholder="••••••••"
                     value={form.confirm}
-                    onChange={e => setForm({ ...form, confirm: e.target.value })}
+                    onChange={e => { setForm({ ...form, confirm: e.target.value }); clearError('confirm'); }}
+                    className={errorType === 'confirm' ? 'input-error' : ''}
                     required
                   />
                 </div>
