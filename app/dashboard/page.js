@@ -6,232 +6,373 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
-/* ─────────────── GLOBAL STYLES ─────────────── */
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body { font-family: 'DM Sans', -apple-system, sans-serif; }
 
-    .db-page {
+    .home {
       background: #f5f4f0;
       min-height: calc(100vh - 60px);
       font-family: 'DM Sans', -apple-system, sans-serif;
     }
-    .db-inner {
-      max-width: 1160px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
-    }
 
-    /* PAGE HEADER */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      gap: 1rem;
+    /* ── HERO ── */
+    .hero {
+      background: #0d0d0d;
+      padding: 52px 0 48px;
     }
-    .header-actions {
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
       display: flex;
-      gap: 0.75rem;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      color: #fff;
+      line-height: 1.08;
+      margin-bottom: 12px;
+    }
+    .hero-title span { color: #f5f4f0; opacity: 0.35; }
+    .hero-sub {
+      font-size: 14px;
+      color: #888;
+      font-weight: 400;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 10px;
       flex-shrink: 0;
     }
-    .header-btn {
+    .hero-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 0.55rem 1.1rem;
-      border-radius: 8px;
+      gap: 7px;
+      height: 42px;
+      padding: 0 22px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       text-decoration: none;
+      cursor: pointer;
+      border: none;
       white-space: nowrap;
     }
-    .header-btn-outline {
-      background: transparent;
+    .hero-btn-light {
+      background: #fff;
       color: #0d0d0d;
-      border: 0.5px solid rgba(0,0,0,0.2);
     }
-    .header-btn-solid {
-      background: #0d0d0d;
+    .hero-btn-outline {
+      background: transparent;
       color: #fff;
-      border: none;
+      border: 0.5px solid rgba(255,255,255,0.2);
     }
 
-    /* STATS */
-    .stats-grid {
+    /* ── STAT BAR ── */
+    .stat-bar {
+      background: #fff;
+      border-bottom: 0.5px solid rgba(0,0,0,0.07);
+    }
+    .stat-bar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.25rem;
+    }
+    .stat-item {
+      padding: 20px 0 20px 24px;
+      border-right: 0.5px solid rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .stat-item:first-child { padding-left: 0; }
+    .stat-item:last-child { border-right: none; }
+    .stat-icon-wrap {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-num {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      color: #0d0d0d;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 11.5px;
+      color: #aaa;
+      margin-top: 3px;
     }
 
-    /* SECTIONS */
-    .sections-grid {
+    /* ── MAIN CONTENT ── */
+    .main-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 32px 56px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 14px;
+    }
+
+    /* ── QUICK ACTIONS ── */
+    .quick-actions {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .action-card {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 22px 22px 20px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .action-card:hover {
+      border-color: rgba(0,0,0,0.18);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .action-card-icon {
+      width: 40px; height: 40px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .action-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0d0d0d;
+      margin-bottom: 4px;
+    }
+    .action-card-desc {
+      font-size: 12.5px;
+      color: #999;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+    .action-card-arrow {
+      margin-top: auto;
+      font-size: 12px;
+      color: #ccc;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    /* ── TABLET ── */
-    @media (max-width: 900px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    /* ── TWO COL ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
     }
 
-    /* ── MOBILE ── */
-    @media (max-width: 640px) {
-      .db-inner {
-        padding: 1.25rem 1rem;
-      }
+    /* ── PANEL ── */
+    .panel {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.06);
+    }
+    .panel-head-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0d0d0d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-head-link {
+      font-size: 12px;
+      color: #bbb;
+      text-decoration: none;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .panel-head-link:hover { color: #0d0d0d; }
 
-      /* Header stacks vertically */
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        margin-bottom: 1.25rem;
-        gap: 0.85rem;
-      }
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      border-bottom: 0.5px solid rgba(0,0,0,0.06);
+      padding: 0 20px;
+    }
+    .tab {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #bbb;
+      padding: 10px 0;
+      margin-right: 20px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.1s;
+    }
+    .tab.active { color: #0d0d0d; border-bottom-color: #0d0d0d; font-weight: 600; }
 
-      /* Greeting text */
-      .page-header h1 {
-        font-size: 1.4rem !important;
-      }
-
-      /* Buttons fill full width, stack if needed */
-      .header-actions {
-        width: 100%;
-        gap: 0.5rem;
-      }
-      .header-btn {
-        flex: 1;
-        justify-content: center;
-        padding: 0.6rem 0.75rem;
-        font-size: 12.5px;
-      }
-
-      /* Stats: 2 columns, tighter */
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.65rem;
-        margin-bottom: 0.9rem;
-      }
-
-      /* Sections: single column */
-      .sections-grid {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-      }
-
-      /* Stat card compact */
-      .stat-card {
-        padding: 1rem 1.1rem !important;
-        gap: 8px !important;
-      }
-      .stat-card .stat-icon {
-        width: 30px !important;
-        height: 30px !important;
-        border-radius: 7px !important;
-      }
-      .stat-card .stat-value {
-        font-size: 22px !important;
-      }
-
-      /* Item row tweaks */
-      .item-row {
-        padding: 0.6rem 0.75rem !important;
-      }
-      .item-row .item-name {
-        font-size: 12.5px !important;
-      }
-      .item-row .item-meta {
-        font-size: 10.5px !important;
-      }
-
-      /* Badge smaller on mobile */
-      .badge {
-        font-size: 9.5px !important;
-        padding: 2px 8px !important;
-      }
+    /* ── ITEM ROW ── */
+    .panel-list { padding: 8px 12px 12px; }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 8px;
+      border-radius: 8px;
+      transition: background 0.1s;
+    }
+    .item-row:hover { background: #f9f9f8; }
+    .item-index {
+      font-size: 11px;
+      color: #ddd;
+      font-weight: 500;
+      width: 18px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .item-body { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0d0d0d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    /* ── VERY SMALL PHONES ── */
-    @media (max-width: 360px) {
-      .header-actions {
-        flex-direction: column;
-      }
+    /* ── NOTIF ROW ── */
+    .notif-row {
+      display: flex;
+      gap: 10px;
+      padding: 11px 20px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.05);
+      align-items: flex-start;
+    }
+    .notif-row:last-child { border-bottom: none; }
+    .notif-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .notif-msg { font-size: 12.5px; color: #333; line-height: 1.5; }
+    .notif-date { font-size: 11px; color: #ccc; margin-top: 2px; }
+
+    /* ── CLAIM ROW ── */
+    .claim-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 20px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.05);
+    }
+    .claim-row:last-child { border-bottom: none; }
+    .claim-name { font-size: 13px; font-weight: 600; color: #0d0d0d; }
+    .claim-sub  { font-size: 11px; color: #bbb; margin-top: 2px; }
+
+    /* ── RIGHT COL ── */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── BADGE ── */
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── EMPTY ── */
+    .empty {
+      padding: 32px 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #ccc;
+      font-weight: 300;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .two-col { grid-template-columns: 1fr; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+    @media (max-width: 768px) {
+      .hero-inner { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .hero-title { font-size: 30px; }
+      .stat-bar-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .stat-item:nth-child(1),
+      .stat-item:nth-child(2) { border-bottom: 0.5px solid rgba(0,0,0,0.07); }
+      .quick-actions { grid-template-columns: 1fr 1fr; }
+      .right-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 540px) {
+      .hero { padding: 36px 0 32px; }
+      .hero-inner, .stat-bar-inner, .main-content { padding-left: 18px; padding-right: 18px; }
+      .hero-title { font-size: 26px; }
+      .quick-actions { grid-template-columns: 1fr; }
+      .hero-actions { width: 100%; }
+      .hero-btn { flex: 1; justify-content: center; }
     }
   `}</style>
 );
 
-/* ─────────────── SVG ICONS ─────────────── */
-function IconBox({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="12" height="10" rx="1.5" />
-      <path d="M5 4V3a3 3 0 0 1 6 0v1" />
-    </svg>
-  );
-}
-function IconCheck({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <path d="M3 8l4 4 6-7" />
-    </svg>
-  );
-}
-function IconBell({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <path d="M8 2a4.5 4.5 0 0 0-4.5 4.5c0 2.4-.8 3.5-1.5 4h12c-.7-.5-1.5-1.6-1.5-4A4.5 4.5 0 0 0 8 2z" />
-      <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0" />
-    </svg>
-  );
-}
-function IconClipboard({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <rect x="2" y="2" width="12" height="12" rx="1.5" />
-      <path d="M5 8h6M5 5h6M5 11h4" />
-    </svg>
-  );
-}
-function IconArrowRight({ size = 12 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <path d="M2 6h8M6 2l4 4-4 4" />
-    </svg>
-  );
-}
-function IconPlus({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-      <path d="M7 2v10M2 7h10" />
-    </svg>
-  );
-}
-function IconPin({ size = 12 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-      <path d="M6 1a3 3 0 0 1 3 3c0 2-3 7-3 7S3 6 3 4a3 3 0 0 1 3-3z" />
-      <circle cx="6" cy="4" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-function IconTag({ size = 12 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-      <path d="M1 1h4l6 6-4 4-6-6V1z" />
-      <circle cx="3.5" cy="3.5" r="0.8" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-/* ─────────────── BADGE ─────────────── */
+/* ── BADGE ── */
 const badgeMap = {
   active:    { bg: '#e6f4ea', color: '#1a6b3c' },
   matched:   { bg: '#fef9e6', color: '#92600a' },
@@ -244,197 +385,46 @@ const badgeMap = {
   rejected:  { bg: '#fdecea', color: '#b91c1c' },
   disputed:  { bg: '#fdecea', color: '#b91c1c' },
 };
-
 function Badge({ status }) {
   const s = badgeMap[status] || { bg: '#f3f4f6', color: '#6b7280' };
+  return <span className="badge" style={{ background: s.bg, color: s.color }}>{status}</span>;
+}
+
+/* ── ICONS ── */
+function Ico({ d, size = 15, color = 'currentColor' }) {
   return (
-    <span className="badge" style={{
-      background: s.bg,
-      color: s.color,
-      fontSize: 10,
-      fontWeight: 600,
-      padding: '3px 10px',
-      borderRadius: 20,
-      letterSpacing: '0.06em',
-      textTransform: 'uppercase',
-      whiteSpace: 'nowrap',
-      flexShrink: 0,
-    }}>
-      {status}
-    </span>
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
+      stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  );
+}
+function ChevronRight() {
+  return (
+    <svg width={11} height={11} viewBox="0 0 12 12" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M4 2l4 4-4 4" />
+    </svg>
+  );
+}
+function Plus() {
+  return (
+    <svg width={13} height={13} viewBox="0 0 14 14" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <path d="M7 2v10M2 7h10" />
+    </svg>
   );
 }
 
-/* ─────────────── EMPTY STATE ─────────────── */
-function EmptyState({ text }) {
-  return (
-    <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-      <p style={{ color: '#bbb', fontSize: 13, fontWeight: 300 }}>{text}</p>
-    </div>
-  );
-}
-
-/* ─────────────── STAT CARD ─────────────── */
-function StatCard({ label, value, iconBg, Icon }) {
-  return (
-    <div className="stat-card" style={{
-      background: '#fff',
-      border: '0.5px solid rgba(0,0,0,0.09)',
-      borderRadius: 14,
-      padding: '1.3rem 1.4rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-    }}>
-      <div className="stat-icon" style={{
-        width: 36, height: 36,
-        borderRadius: 9,
-        background: iconBg,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#333',
-        flexShrink: 0,
-      }}>
-        <Icon size={16} />
-      </div>
-      <div>
-        <div className="stat-value" style={{ fontSize: 28, fontWeight: 700, color: '#0d0d0d', letterSpacing: '-1px', lineHeight: 1 }}>
-          {value}
-        </div>
-        <div style={{ fontSize: 12, color: '#999', marginTop: 4, fontWeight: 400 }}>
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────── SECTION ─────────────── */
-function Section({ title, link, Icon, children }) {
-  return (
-    <div style={{
-      background: '#fff',
-      border: '0.5px solid rgba(0,0,0,0.09)',
-      borderRadius: 14,
-      padding: '1.4rem',
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-        paddingBottom: '0.9rem',
-        borderBottom: '0.5px solid rgba(0,0,0,0.07)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: '#888', display: 'flex' }}><Icon size={15} /></span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#0d0d0d' }}>{title}</span>
-        </div>
-        <Link href={link} style={{
-          fontSize: 12, color: '#888', textDecoration: 'none',
-          display: 'flex', alignItems: 'center', gap: 4,
-        }}>
-          View all <IconArrowRight size={11} />
-        </Link>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────── ITEM ROW ─────────────── */
-function ItemRow({ item }) {
-  return (
-    <div className="item-row" style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0.7rem 0.85rem',
-      background: '#f9f9f8',
-      borderRadius: 9,
-      border: '0.5px solid rgba(0,0,0,0.06)',
-      gap: 8,
-    }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
-        <span className="item-name" style={{
-          fontSize: 13, fontWeight: 600, color: '#0d0d0d',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {item.name}
-        </span>
-        <span className="item-meta" style={{ fontSize: 11, color: '#aaa', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <IconPin size={11} />
-          {item.location}
-          <span style={{ color: '#ddd' }}>·</span>
-          <IconTag size={11} />
-          {item.category}
-        </span>
-      </div>
-      <Badge status={item.status} />
-    </div>
-  );
-}
-
-/* ─────────────── NOTIFICATION ROW ─────────────── */
-function NotifRow({ n }) {
-  return (
-    <div style={{
-      display: 'flex',
-      gap: 10,
-      padding: '0.7rem 0',
-      borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-      alignItems: 'flex-start',
-    }}>
-      <div style={{
-        width: 7, height: 7,
-        borderRadius: '50%',
-        marginTop: 5,
-        flexShrink: 0,
-        background: n.is_read ? '#ddd' : '#0d0d0d',
-      }} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 13, color: '#0d0d0d', lineHeight: 1.5 }}>{n.message}</div>
-        <div style={{ fontSize: 11, color: '#bbb', marginTop: 2 }}>
-          {new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────── CLAIM ROW ─────────────── */
-function ClaimRow({ claim }) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0.65rem 0',
-      borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-      gap: 8,
-    }}>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#0d0d0d', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {claim.lost_item_name}
-        </div>
-        <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>Found: {claim.found_item_name}</div>
-      </div>
-      <Badge status={claim.status} />
-    </div>
-  );
-}
-
-/* ─────────────── MAIN PAGE ─────────────── */
-export default function DashboardPage() {
+/* ── PAGE ── */
+export default function HomePage() {
   const { authFetch, user } = useAuth();
-  const [lostItems, setLostItems]           = useState([]);
-  const [foundItems, setFoundItems]         = useState([]);
-  const [notifications, setNotifications]   = useState([]);
-  const [claims, setClaims]                 = useState([]);
-  const [loading, setLoading]               = useState(true);
+  const [lostItems, setLostItems]         = useState([]);
+  const [foundItems, setFoundItems]       = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [claims, setClaims]               = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [activeTab, setActiveTab]         = useState('lost');
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -462,89 +452,241 @@ export default function DashboardPage() {
 
   const unreadCount  = notifications.filter(n => !n.is_read).length;
   const activeClaims = claims.filter(c => c.status !== 'confirmed' && c.status !== 'rejected').length;
+  const displayItems = activeTab === 'lost' ? lostItems : foundItems;
+  const firstName    = user?.name?.split(' ')[0] || 'there';
 
   return (
     <ProtectedRoute>
       <GlobalStyles />
       <Navbar />
+      <div className="home">
 
-      <div className="db-page">
-        <div className="db-inner">
-
-          {/* Header */}
-          <div className="page-header">
+        {/* ── HERO ── */}
+        <div className="hero">
+          <div className="hero-inner">
             <div>
-              <div style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: '0.1em',
-                color: '#aaa', textTransform: 'uppercase', marginBottom: 6,
-              }}>
-                Dashboard
-              </div>
-              <h1 style={{
-                fontSize: '1.75rem', fontWeight: 700,
-                letterSpacing: '-0.5px', color: '#0d0d0d', lineHeight: 1.15,
-              }}>
-                Welcome back, {user?.name?.split(' ')[0] || 'there'}
+              <div className="hero-eyebrow">Lost &amp; Found · Findbase</div>
+              <h1 className="hero-title">
+                Hey, {firstName}.<br />
+                <span>What can we help you find?</span>
               </h1>
-              <p style={{ fontSize: 14, color: '#888', marginTop: 4, fontWeight: 300 }}>
-                Here is your Lost &amp; Found activity overview
+              <p className="hero-sub">
+                Report a missing item, log something you found, or track your active claims — all in one place.
               </p>
             </div>
-            <div className="header-actions">
-              <Link href="/items/found/new" className="header-btn header-btn-outline">
-                <IconPlus size={13} /> Report Found
+            <div className="hero-actions">
+              <Link href="/items/found/new" className="hero-btn hero-btn-outline">
+                <Plus /> Report Found
               </Link>
-              <Link href="/items/lost/new" className="header-btn header-btn-solid">
-                <IconPlus size={13} /> Report Lost
+              <Link href="/items/lost/new" className="hero-btn hero-btn-light">
+                <Plus /> Report Lost
               </Link>
             </div>
           </div>
+        </div>
 
-          {/* Stats */}
-          <div className="stats-grid">
-            <StatCard label="Lost Items"           value={lostItems.length}  iconBg="#fdecea" Icon={IconBox} />
-            <StatCard label="Found Items"          value={foundItems.length} iconBg="#e6f4ea" Icon={IconCheck} />
-            <StatCard label="Unread Notifications" value={unreadCount}       iconBg="#fef9e6" Icon={IconBell} />
-            <StatCard label="Active Claims"        value={activeClaims}      iconBg="#e8f0fe" Icon={IconClipboard} />
+        {/* ── STAT BAR ── */}
+        <div className="stat-bar">
+          <div className="stat-bar-inner">
+            <div className="stat-item">
+              <div className="stat-icon-wrap" style={{ background: '#fdecea' }}>
+                <Ico d="M2 5h12v9H2zM5 5V4a3 3 0 0 1 6 0v1" color="#b91c1c" />
+              </div>
+              <div>
+                <div className="stat-num">{lostItems.length}</div>
+                <div className="stat-lbl">Lost Items</div>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon-wrap" style={{ background: '#e6f4ea' }}>
+                <Ico d="M3 8l4 4 6-7" color="#1a6b3c" />
+              </div>
+              <div>
+                <div className="stat-num">{foundItems.length}</div>
+                <div className="stat-lbl">Found Items</div>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon-wrap" style={{ background: '#fef9e6' }}>
+                <Ico d="M8 2a4.5 4.5 0 0 0-4.5 4.5c0 2.4-.8 3.5-1.5 4h12c-.7-.5-1.5-1.6-1.5-4A4.5 4.5 0 0 0 8 2z M6.5 13.5a1.5 1.5 0 0 0 3 0" color="#92600a" />
+              </div>
+              <div>
+                <div className="stat-num">{unreadCount}</div>
+                <div className="stat-lbl">Notifications</div>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon-wrap" style={{ background: '#e8f0fe' }}>
+                <Ico d="M2 2h12v12H2z M5 8h6M5 5h6M5 11h4" color="#1a47a0" />
+              </div>
+              <div>
+                <div className="stat-num">{activeClaims}</div>
+                <div className="stat-lbl">Active Claims</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MAIN ── */}
+        <div className="main-content">
+
+          {/* Quick Actions */}
+          <div className="section-label">Quick Actions</div>
+          <div className="quick-actions">
+            <Link href="/items/lost/new" className="action-card">
+              <div className="action-card-icon" style={{ background: '#fdecea' }}>
+                <Ico d="M2 5h12v9H2zM5 5V4a3 3 0 0 1 6 0v1" color="#b91c1c" size={17} />
+              </div>
+              <div>
+                <div className="action-card-title">Report a Lost Item</div>
+                <div className="action-card-desc">Something missing? File a report and we'll help track it down.</div>
+              </div>
+              <div className="action-card-arrow">Get started <ChevronRight /></div>
+            </Link>
+
+            <Link href="/items/found/new" className="action-card">
+              <div className="action-card-icon" style={{ background: '#e6f4ea' }}>
+                <Ico d="M3 8l4 4 6-7" color="#1a6b3c" size={17} />
+              </div>
+              <div>
+                <div className="action-card-title">Log a Found Item</div>
+                <div className="action-card-desc">Found something? Submit it so the owner can claim it back.</div>
+              </div>
+              <div className="action-card-arrow">Get started <ChevronRight /></div>
+            </Link>
           </div>
 
-          {/* Sections */}
+          {/* Two column */}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#bbb', fontSize: 14 }}>
-              Loading your data...
+            <div style={{ textAlign: 'center', padding: '48px', color: '#bbb', fontSize: 13 }}>
+              Loading your activity…
             </div>
           ) : (
-            <div className="sections-grid">
-              <Section title="My Lost Items"  link="/items/lost"    Icon={IconBox}>
-                {lostItems.length === 0
-                  ? <EmptyState text="No lost items reported yet" />
-                  : lostItems.slice(0, 3).map(item => <ItemRow key={item.id} item={item} />)
-                }
-              </Section>
+            <div className="two-col">
 
-              <Section title="My Found Items" link="/items/found"   Icon={IconCheck}>
-                {foundItems.length === 0
-                  ? <EmptyState text="No found items reported yet" />
-                  : foundItems.slice(0, 3).map(item => <ItemRow key={item.id} item={item} />)
-                }
-              </Section>
+              {/* Left: tabbed items */}
+              <div>
+                <div className="section-label">My Items</div>
+                <div className="panel">
+                  <div className="panel-head">
+                    <div className="panel-head-title">
+                      <Ico d="M2 5h12v9H2zM5 5V4a3 3 0 0 1 6 0v1" size={14} color="#aaa" />
+                      My Reported Items
+                    </div>
+                    <Link
+                      href={activeTab === 'lost' ? '/items/lost' : '/items/found'}
+                      className="panel-head-link"
+                    >
+                      View all <ChevronRight />
+                    </Link>
+                  </div>
+                  <div className="tabs">
+                    <button className={`tab ${activeTab === 'lost' ? 'active' : ''}`} onClick={() => setActiveTab('lost')}>
+                      Lost ({lostItems.length})
+                    </button>
+                    <button className={`tab ${activeTab === 'found' ? 'active' : ''}`} onClick={() => setActiveTab('found')}>
+                      Found ({foundItems.length})
+                    </button>
+                  </div>
+                  <div className="panel-list">
+                    {displayItems.length === 0 ? (
+                      <div className="empty">
+                        No {activeTab} items yet —&nbsp;
+                        <Link
+                          href={activeTab === 'lost' ? '/items/lost/new' : '/items/found/new'}
+                          style={{ color: '#0d0d0d', fontWeight: 600 }}
+                        >
+                          report one
+                        </Link>
+                      </div>
+                    ) : (
+                      displayItems.slice(0, 6).map((item, i) => (
+                        <div className="item-row" key={item.id}>
+                          <div className="item-index">{String(i + 1).padStart(2, '0')}</div>
+                          <div className="item-body">
+                            <div className="item-name">{item.name}</div>
+                            <div className="item-meta">
+                              <Ico d="M6 1a3 3 0 0 1 3 3c0 2-3 7-3 7S3 6 3 4a3 3 0 0 1 3-3z" size={10} color="#ccc" />
+                              {item.location}
+                              <span style={{ color: '#e0ddd8' }}>·</span>
+                              {item.category}
+                            </div>
+                          </div>
+                          <Badge status={item.status} />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
 
-              <Section title="Notifications"  link="/notifications" Icon={IconBell}>
-                {notifications.length === 0
-                  ? <EmptyState text="No notifications yet" />
-                  : notifications.slice(0, 4).map(n => <NotifRow key={n.id} n={n} />)
-                }
-              </Section>
+              {/* Right: notifications + claims */}
+              <div className="right-col">
+                <div>
+                  <div className="section-label">Notifications</div>
+                  <div className="panel">
+                    <div className="panel-head">
+                      <div className="panel-head-title">
+                        <Ico d="M8 2a4.5 4.5 0 0 0-4.5 4.5c0 2.4-.8 3.5-1.5 4h12c-.7-.5-1.5-1.6-1.5-4A4.5 4.5 0 0 0 8 2z M6.5 13.5a1.5 1.5 0 0 0 3 0" size={14} color="#aaa" />
+                        Notifications
+                        {unreadCount > 0 && (
+                          <span style={{
+                            background: '#0d0d0d', color: '#fff', fontSize: 10,
+                            fontWeight: 700, borderRadius: 10, padding: '1px 7px', marginLeft: 4,
+                          }}>
+                            {unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <Link href="/notifications" className="panel-head-link">View all <ChevronRight /></Link>
+                    </div>
+                    {notifications.length === 0 ? (
+                      <div className="empty">No notifications yet</div>
+                    ) : (
+                      notifications.slice(0, 4).map(n => (
+                        <div className="notif-row" key={n.id}>
+                          <div className="notif-dot" style={{ background: n.is_read ? '#ddd' : '#0d0d0d' }} />
+                          <div>
+                            <div className="notif-msg">{n.message}</div>
+                            <div className="notif-date">
+                              {new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
 
-              <Section title="My Claims"      link="/claims"        Icon={IconClipboard}>
-                {claims.length === 0
-                  ? <EmptyState text="No claims yet" />
-                  : claims.slice(0, 3).map(claim => <ClaimRow key={claim.id} claim={claim} />)
-                }
-              </Section>
+                <div>
+                  <div className="section-label">My Claims</div>
+                  <div className="panel">
+                    <div className="panel-head">
+                      <div className="panel-head-title">
+                        <Ico d="M2 2h12v12H2z M5 8h6M5 5h6M5 11h4" size={14} color="#aaa" />
+                        Claims
+                      </div>
+                      <Link href="/claims" className="panel-head-link">View all <ChevronRight /></Link>
+                    </div>
+                    {claims.length === 0 ? (
+                      <div className="empty">No claims yet</div>
+                    ) : (
+                      claims.slice(0, 4).map(claim => (
+                        <div className="claim-row" key={claim.id}>
+                          <div>
+                            <div className="claim-name">{claim.lost_item_name}</div>
+                            <div className="claim-sub">Found: {claim.found_item_name}</div>
+                          </div>
+                          <Badge status={claim.status} />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
-
         </div>
       </div>
     </ProtectedRoute>
