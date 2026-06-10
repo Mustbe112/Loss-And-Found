@@ -130,10 +130,6 @@ lost-and-found/
 
 ## System Architecture
 
-![System Architecture](./docs/architecture.png)
-
-> *Architecture diagram: Browser → Vercel Edge (middleware) → API Routes → MySQL / Cloudinary / Gemini AI*
-
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                        Client (Browser)                  │
